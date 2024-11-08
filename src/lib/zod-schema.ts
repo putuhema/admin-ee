@@ -17,6 +17,6 @@ export const studentSchema = z.object({
   name: z.string(),
   nickname: z.string(),
   subjectId: z.number(),
-  dateOfBirth: z.date().optional(),
-  joinDate: z.date().optional(),
+  dateOfBirth: z.coerce.date().optional(),
+  joinDate: z.coerce.date().optional(),
 });

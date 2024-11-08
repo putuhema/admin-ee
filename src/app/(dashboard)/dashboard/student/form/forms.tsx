@@ -1,5 +1,5 @@
 "use client";
-
+import * as React from "react";
 import {
   Form,
   FormControl,
@@ -30,20 +30,14 @@ import { useForm } from "react-hook-form";
 import { studentSchema } from "@/lib/zod-schema";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import { useActionState, useRef } from "react";
-import { ActionState } from "@/lib/middleware";
-import { postStudent } from "./actions";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useGetSubjects } from "@/features/subjects/hooks/use-get-subjects";
+import { usePostStudents } from "@/features/students/hooks/use-post-students";
 
-type Props = {
-  subjects: { id: number; name: string | null }[];
-};
+export default function StudentForm() {
+  const { data: subjects } = useGetSubjects();
 
-export default function StudentForm({ subjects }: Props) {
-  // const [state, formAction, pending] = useActionState<ActionState, FormData>(
-  //   postStudent,
-  //   { error: "" },
-  // );
+  const mutation = usePostStudents();
 
   const form = useForm<z.infer<typeof studentSchema>>({
     resolver: zodResolver(studentSchema),
@@ -57,8 +51,14 @@ export default function StudentForm({ subjects }: Props) {
   });
 
   async function onSubmit(formData: z.infer<typeof studentSchema>) {
-    console.log(formData);
+    mutation.mutate(formData);
   }
+
+  React.useEffect(() => {
+    if (mutation.isSuccess) {
+      form.reset();
+    }
+  }, [mutation.isSuccess]);
 
   return (
     <Form {...form}>
@@ -121,15 +121,16 @@ export default function StudentForm({ subjects }: Props) {
                     <SelectValue placeholder="Subject" />
                   </SelectTrigger>
                   <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem
-                        key={subject.id}
-                        value={subject.id.toString()}
-                        className="capitalize"
-                      >
-                        {subject.name}
-                      </SelectItem>
-                    ))}
+                    {subjects &&
+                      subjects.map((subject) => (
+                        <SelectItem
+                          key={subject.id}
+                          value={subject.id.toString()}
+                          className="capitalize"
+                        >
+                          {subject.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -221,7 +222,13 @@ export default function StudentForm({ subjects }: Props) {
             )}
           />
         </div>
-        <Button type="submit">Submit</Button>
+        <Button disabled={mutation.isPending} type="submit">
+          {mutation.isPending ? (
+            <Loader2 className="text-muted-foreground w-4 h-4 animate-spin" />
+          ) : (
+            "Submit"
+          )}
+        </Button>
       </form>
     </Form>
   );

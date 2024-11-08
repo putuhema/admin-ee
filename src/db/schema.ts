@@ -56,11 +56,15 @@ export const verification = pgTable("verification", {
 export const Student = pgTable("student", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }),
-  nickname: text("name"),
+  nickname: text("nickname"),
   dateOfBirth: timestamp("date_of_birth"),
   joinDate: timestamp("join_date"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("createdAt").notNull().defaultNow(),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const Subject = pgTable("subject", {
