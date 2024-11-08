@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -22,29 +23,39 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 
-const signUpFormSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
+const signUpFormSchema = z
+  .object({
+    email: z.string().email(),
+    username: z.string().min(3),
+    password: z.string().min(8),
+    passwordConfirm: z.string().min(8),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "passwords must match",
+    path: ["passwordConfirm"],
+  });
 
-export default function SignIn() {
+export default function SignUp() {
   const router = useRouter();
-
   const [showPassword, setShowPassword] = useState({
     password: "password",
+    passwordConfirm: "password",
   });
   const form = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
       email: "",
+      username: "",
       password: "",
+      passwordConfirm: "",
     },
   });
 
   async function onSubmit(formData: z.infer<typeof signUpFormSchema>) {
-    await authClient.signIn.email(
+    await authClient.signUp.email(
       {
         email: formData.email,
+        name: formData.username,
         password: formData.password,
       },
       {
@@ -84,6 +95,23 @@ export default function SignIn() {
         <div className="flex-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="putuhema" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      This is your public display name.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -128,10 +156,38 @@ export default function SignIn() {
                 )}
               />
 
-              <Button type="submit">Login</Button>
+              <FormField
+                control={form.control}
+                name="passwordConfirm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password Confirmation</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword["passwordConfirm"]}
+                          {...field}
+                        />
+                        <button
+                          onClick={() => toggleShowPassword("passwordConfirm")}
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 transform text-muted-foreground"
+                        >
+                          {showPassword["passwordConfirm"] === "password" ? (
+                            <Eye className="w-4 h-4" />
+                          ) : (
+                            <EyeOff className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Register</Button>
               <p className="text-center">
-                Don&apos;t have an account yet?{" "}
-                <Link href="/sign-up">Register</Link>?{" "}
+                already have an <Link href="/">account</Link>?{" "}
               </p>
             </form>
           </Form>
