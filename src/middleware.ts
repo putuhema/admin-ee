@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  const publicRoutes = ["/", "/sign-up", "/sign-in"];
+  const publicRoutes = ["/sign-up", "/sign-in"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   try {
@@ -24,13 +24,13 @@ export default async function middleware(request: NextRequest) {
     }
 
     if (!session && !isPublicRoute) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
     return NextResponse.next();
   } catch (error) {
     if (!isPublicRoute) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/sign-in", request.url));
     }
     return NextResponse.next();
   }

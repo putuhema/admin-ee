@@ -52,7 +52,7 @@ export default function SignIn() {
           //show loading
         },
         onSuccess: () => {
-          router.push("/dashboard");
+          router.push("/");
         },
         onError: (ctx) => {
           alert(ctx.error.message);

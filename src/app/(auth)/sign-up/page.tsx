@@ -63,7 +63,7 @@ export default function SignUp() {
           //show loading
         },
         onSuccess: () => {
-          router.push("/dashboard");
+          router.push("/");
         },
         onError: (ctx) => {
           alert(ctx.error.message);
