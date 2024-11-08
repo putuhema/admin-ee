@@ -67,6 +67,8 @@ export const Student = pgTable("student", {
     .defaultNow(),
 });
 
+export type StudentType = typeof Student.$inferSelect;
+
 export const Subject = pgTable("subject", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }),
