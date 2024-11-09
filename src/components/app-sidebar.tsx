@@ -36,8 +36,8 @@ const data = {
       icon: Bot,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "Pricing",
+          url: "/dashboard/subjects/pricing",
         },
         {
           title: "Explorer",

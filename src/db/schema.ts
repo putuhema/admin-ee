@@ -9,6 +9,7 @@ import {
   varchar,
   index,
 } from "drizzle-orm/pg-core";
+import { TypeOf } from "zod";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -85,6 +86,8 @@ export const Pricing = pgTable("pricing", {
   trophyFee: integer("trophy_fee"),
   additionalCost: integer("additional_cost"),
 });
+
+export type PricingType = typeof Pricing.$inferSelect;
 
 export const Enrollment = pgTable("enrollment", {
   id: serial("id").primaryKey(),

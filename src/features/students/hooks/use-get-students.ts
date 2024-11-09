@@ -10,7 +10,7 @@ export const getStudents = async () => {
   return data;
 };
 
-export const useGetSubjects = () => {
+export const useGetStudents = () => {
   const query = useQuery<StudentType>({
     queryKey: ["students"],
     queryFn: getStudents,
