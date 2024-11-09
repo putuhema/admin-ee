@@ -1,7 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
 
 import { MoreHorizontal } from "lucide-react";
 
@@ -14,41 +13,44 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type StudentType } from "../hooks/use-get-students";
+import { type EnrollementType } from "../hooks/use-get-enrollment";
+import { format } from "date-fns";
 
-export const columns: ColumnDef<StudentType[number]>[] = [
+export const columns: ColumnDef<EnrollementType[number]>[] = [
   {
-    accessorKey: "name",
-    header: "Name",
-  },
-  {
-    accessorKey: "nickname",
-    header: "Nickname",
-  },
-  {
-    accessorKey: "dateOfBirth",
-    header: "Date of Birth",
+    header: "Student Name",
     cell: ({ row }) => {
-      const formmatedDAte = format(
-        new Date(row.getValue("dateOfBirth")),
-        "PPP",
-      );
-
-      return <span>{formmatedDAte}</span>;
+      return <span>{row.original.student?.name}</span>;
     },
   },
   {
-    accessorKey: "joinDate",
-    header: "Join Date",
+    header: "Subject",
     cell: ({ row }) => {
-      const formmatedDAte = format(new Date(row.getValue("joinDate")), "PPP");
-
-      return <span>{formmatedDAte}</span>;
+      return <span>{row.original.subject?.name}</span>;
+    },
+  },
+  {
+    header: "Enrollment Date",
+    cell: ({ row }) => {
+      const enrollmentDate = row.original.enrollment.enrollmentDate;
+      return <span>{format(new Date(enrollmentDate!), "PPP")}</span>;
+    },
+  },
+  {
+    header: "Enrollment Fee",
+    cell: ({ row }) => {
+      return <span>{row.original.enrollment.enrollmentFee}</span>;
+    },
+  },
+  {
+    header: "Status",
+    cell: ({ row }) => {
+      return <span>{row.original.enrollment.status}</span>;
     },
   },
   {
     id: "actions",
-    cell: ({ row }) => {
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

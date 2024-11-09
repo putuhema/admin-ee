@@ -55,10 +55,11 @@ export default function StudentForm() {
   }
 
   React.useEffect(() => {
-    if (mutation.isSuccess) {
+    if (mutation.isSuccess && subjects) {
       form.reset();
+      form.setValue("subjectId", subjects[0].id);
     }
-  }, [mutation.isSuccess]);
+  }, [mutation.isSuccess, subjects]);
 
   return (
     <Form {...form}>

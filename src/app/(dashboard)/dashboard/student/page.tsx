@@ -6,6 +6,8 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { getStudents } from "@/features/students/hooks/use-get-students";
+import { buttonVariants } from "@/components/ui/button";
+import { FileUser } from "lucide-react";
 
 export default async function StudentPage() {
   const queryClient = new QueryClient();
@@ -17,8 +19,18 @@ export default async function StudentPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <main className="">
-        <Link href="/dashboard/student/form">Form</Link>
+      <main className="space-y-2 w-full">
+        <Link
+          href="/dashboard/student/form"
+          className={buttonVariants({
+            variant: "outline",
+            size: "lg",
+            className: "ml-auto",
+          })}
+        >
+          <FileUser />
+          Form
+        </Link>
         <Table />
       </main>
     </HydrationBoundary>

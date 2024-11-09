@@ -5,18 +5,12 @@ import {
   BookOpen,
   Bot,
   Command,
-  Frame,
+  FileUser,
   HandCoins,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
   SquareTerminal,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -54,6 +48,11 @@ const data = {
           url: "#",
         },
       ],
+    },
+    {
+      title: "Enrollment",
+      url: "/dashboard/enrollment",
+      icon: FileUser,
     },
     {
       title: "Teachers",
