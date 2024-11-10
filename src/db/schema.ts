@@ -117,8 +117,12 @@ export const Subject = pgTable("subject", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }),
   description: text("description"),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const SubjectPricing = pgTable("subject_pricing", {
@@ -130,11 +134,15 @@ export const SubjectPricing = pgTable("subject_pricing", {
   medalFee: integer("medal_fee"),
   trophyFee: integer("trophy_fee"),
   isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
-export type  SubjectPricingType = typeof SubjectPricing.$inferSelect;
+export type SubjectPricingType = typeof SubjectPricing.$inferSelect;
 
 export const Enrollment = pgTable("enrollment", {
   id: serial("id").primaryKey(),
@@ -196,8 +204,8 @@ export const Schedule = pgTable("schedule", {
     length: 255,
   }),
   notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const Payment = pgTable("payment", {
@@ -208,8 +216,8 @@ export const Payment = pgTable("payment", {
   paymentDate: timestamp("payment_date", { withTimezone: true }),
   enrollmentId: integer("enrollment_id").references(() => Enrollment.id),
   notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const PaymentDetail = pgTable("payment_detail", {
@@ -220,8 +228,8 @@ export const PaymentDetail = pgTable("payment_detail", {
   ),
   amount: integer("amount"),
   description: text("description"),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const EnrollmentSubjects = pgTable("enrollment_subjects", {

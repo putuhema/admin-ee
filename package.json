@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "seed:subjects": "tsx src/db/seed/subjects.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.1",
