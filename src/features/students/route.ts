@@ -12,6 +12,29 @@ const app = new Hono()
     return c.json(students);
   })
   .get(
+    "/:studentId",
+    zValidator(
+      "param",
+      z.object({
+        studentId: z.string().regex(/^\d+$/, "Student ID must be a number"),
+      })
+    ),
+    async (c) => {
+      const { studentId } = c.req.valid("param");
+      const students = await db
+        .select()
+        .from(Student)
+        .where(eq(Student.id, parseInt(studentId)))
+        .limit(1);
+
+      if (!students.length) {
+        return c.json({ error: "Student not found" }, 404);
+      }
+
+      return c.json(students[0]);
+    }
+  )
+  .get(
     "/q",
     zValidator(
       "query",

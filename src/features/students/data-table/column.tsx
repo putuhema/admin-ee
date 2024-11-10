@@ -3,18 +3,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
-import { MoreHorizontal } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { type StudentType } from "../hooks/use-get-students";
+import TableDropdownAction from "../components/table-dropdown-action";
 
 export const columns: ColumnDef<StudentType[number]>[] = [
   {
@@ -44,23 +34,8 @@ export const columns: ColumnDef<StudentType[number]>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View Student</DropdownMenuItem>
-            <DropdownMenuItem>Modify Student</DropdownMenuItem>
-            <DropdownMenuItem>Delete Student</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      const studentId = row.original.id;
+      return <TableDropdownAction studentId={studentId} />;
     },
   },
 ];
