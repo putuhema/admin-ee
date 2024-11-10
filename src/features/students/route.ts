@@ -12,6 +12,28 @@ const app = new Hono()
     return c.json(students);
   })
   .get(
+    "/q",
+    zValidator(
+      "query",
+      z.object({
+        name: z.string().optional(),
+      })
+    ),
+    async (c) => {
+      const { name } = c.req.valid("query");
+
+      const query = db.select().from(Student).limit(10);
+      if (name) {
+        query.where(ilike(Student.name, `%${name}%`));
+      }
+
+      const students = await query;
+
+      return c.json(students);
+    }
+  )
+
+  .get(
     "/:studentId",
     zValidator(
       "param",
@@ -32,27 +54,6 @@ const app = new Hono()
       }
 
       return c.json(students[0]);
-    }
-  )
-  .get(
-    "/q",
-    zValidator(
-      "query",
-      z.object({
-        name: z.string().optional(),
-      })
-    ),
-    async (c) => {
-      const { name } = c.req.valid("query");
-
-      const query = db.select().from(Student).limit(10);
-      if (name) {
-        query.where(ilike(Student.name, `%${name}%`));
-      }
-
-      const students = await query;
-
-      return c.json(students);
     }
   )
   .post("/", zValidator("json", studentSchema), async (c) => {
