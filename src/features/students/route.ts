@@ -3,13 +3,35 @@ import { db } from "@/db";
 import { Enrollment, EnrollmentSubjects, Student } from "@/db/schema";
 import { Hono } from "hono";
 import { studentSchema } from "@/lib/zod-schema";
-import { eq } from "drizzle-orm";
+import { eq, ilike } from "drizzle-orm";
+import { z } from "zod";
 
 const app = new Hono()
   .get("/", async (c) => {
     const students = await db.select().from(Student);
     return c.json(students);
   })
+  .get(
+    "/q",
+    zValidator(
+      "query",
+      z.object({
+        name: z.string().optional(),
+      }),
+    ),
+    async (c) => {
+      const { name } = c.req.valid("query");
+
+      const query = db.select().from(Student).limit(10);
+      if (name) {
+        query.where(ilike(Student.name, `%${name}%`));
+      }
+
+      const students = await query;
+
+      return c.json(students);
+    },
+  )
   .post("/", zValidator("json", studentSchema), async (c) => {
     const validatedData = c.req.valid("json");
 

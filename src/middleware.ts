@@ -1,15 +1,23 @@
 import { betterFetch } from "@better-fetch/fetch";
 import type { Session } from "better-auth/types";
 import { NextResponse, type NextRequest } from "next/server";
+import { UserType } from "./db/schema";
+
+type BetterSession = {
+  session: Session;
+  user: UserType;
+}
 
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const redirectURL = (path: string) => new URL(path, request.url);
 
-  const publicRoutes = ["/sign-up", "/sign-in"];
+  const publicRoutes = ["/sign-up", "/sign-in", "/favicon.ico",
+    "/robots.txt"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   try {
-    const { data: session } = await betterFetch<Session>(
+    const { data: session } = await betterFetch<BetterSession>(
       "/api/auth/get-session",
       {
         baseURL: request.nextUrl.origin,
@@ -19,20 +27,23 @@ export default async function middleware(request: NextRequest) {
       },
     );
 
-    if (session && isPublicRoute) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    if (!session && !isPublicRoute) {
-      return NextResponse.redirect(new URL("/sign-in", request.url));
+    
+    if (session) {
+      if (pathname === "/dashboard" && session.user.role !== "admin") {
+        return NextResponse.redirect(redirectURL("/"));
+      }
+      if (isPublicRoute) {
+        return NextResponse.redirect(redirectURL("/"));
+      }
+    } else if (!isPublicRoute) {
+      return NextResponse.redirect(redirectURL("/sign-in"));
     }
 
     return NextResponse.next();
   } catch (error) {
-    if (!isPublicRoute) {
-      return NextResponse.redirect(new URL("/sign-in", request.url));
-    }
-    return NextResponse.next();
+    return !isPublicRoute 
+      ? NextResponse.redirect(redirectURL("/sign-in"))
+      : NextResponse.next();
   }
 }
 
