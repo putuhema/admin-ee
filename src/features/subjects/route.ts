@@ -1,6 +1,5 @@
 import { db } from "@/db";
 import { SubjectPricing, Subject } from "@/db/schema";
-import { type SubjectPricingType } from "@/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
@@ -43,7 +42,7 @@ const app = new Hono()
       "param",
       z.object({
         subjectId: z.string(),
-      }),
+      })
     ),
     async (c) => {
       const { subjectId } = c.req.valid("param");
@@ -64,54 +63,28 @@ const app = new Hono()
         .where(eq(Subject.id, parseInt(subjectId)));
 
       return c.json(pricings);
-    },
+    }
   )
-  .post("/pricing", zValidator("json", pricingSchema), async (c) => {
+  .put("/subject-pricing", zValidator("json", pricingSchema), async (c) => {
     const validatedData = c.req.valid("json");
 
-    const data = await db.transaction(async (tx) => {
-      let pricing: SubjectPricingType;
+    const feeData = {
+      subjectId: validatedData.subjectId,
+      bookFee: Number(validatedData.bookFee),
+      monthlyFee: Number(validatedData.monthlyFee),
+      certificateFee: Number(validatedData.certificateFee),
+      medalFee: Number(validatedData.medalFee),
+      trophyFee: Number(validatedData.trophyFee),
+    };
 
-      const isPricingExist = await tx
-        .select()
-        .from(SubjectPricing)
-        .where(eq(SubjectPricing.subjectId, validatedData.subjectId))
-        .limit(1);
-
-      if (isPricingExist.length > 0) {
-        await tx
-          .update(SubjectPricing)
-          .set({
-            subjectId: validatedData.subjectId,
-            bookFee: parseInt(validatedData.bookPrice),
-            monthlyFee: parseInt(validatedData.monthlyFee),
-            certificateFee: parseInt(validatedData.certificateFee),
-            medalFee: parseInt(validatedData.medalFee),
-            trophyFee: parseInt(validatedData.trophyFee),
-          })
-          .where(eq(SubjectPricing.subjectId, validatedData.subjectId));
-
-        [pricing] = await tx
-          .select()
-          .from(SubjectPricing)
-          .where(eq(SubjectPricing.subjectId, validatedData.subjectId))
-          .limit(1);
-      } else {
-        [pricing] = await tx
-          .insert(SubjectPricing)
-          .values({
-            subjectId: validatedData.subjectId,
-            bookFee: parseInt(validatedData.bookPrice),
-            monthlyFee: parseInt(validatedData.monthlyFee),
-            certificateFee: parseInt(validatedData.certificateFee),
-            medalFee: parseInt(validatedData.medalFee),
-            trophyFee: parseInt(validatedData.trophyFee),
-          })
-          .returning();
-      }
-
-      return pricing;
-    });
+    const [data] = await db
+      .insert(SubjectPricing)
+      .values(feeData)
+      .onConflictDoUpdate({
+        target: SubjectPricing.subjectId,
+        set: feeData,
+      })
+      .returning();
 
     return c.json(data);
   });

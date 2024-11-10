@@ -25,10 +25,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useGetSubjects } from "@/features/subjects/hooks/use-get-subjects";
 import { Separator } from "@/components/ui/separator";
 import { pricingSchema } from "@/features/subjects/schema";
-import { usePostPricing } from "@/features/subjects/hooks/use-post-pricing";
+import { usePostSubjectPricing } from "@/features/subjects/hooks/use-post-pricing";
 import { Loader2 } from "lucide-react";
 import { useGetSubjectPricingById } from "@/features/subjects/hooks/use-get-pricing-by-id";
-import { sub } from "date-fns";
 
 export default function PricingForm() {
   const [currentSubject, setCurrentSubject] = React.useState("");
@@ -37,12 +36,11 @@ export default function PricingForm() {
     resolver: zodResolver(pricingSchema),
     defaultValues: {
       subjectId: 0,
-      bookPrice: "",
+      bookFee: "",
       monthlyFee: "",
       certificateFee: "",
       medalFee: "",
       trophyFee: "",
-      additionalCost: "",
     },
   });
 
@@ -52,36 +50,31 @@ export default function PricingForm() {
   React.useEffect(() => {
     if (subjectId !== 0 && pricingData) {
       form.setValue(
-        "bookPrice",
-        formatRupiah(pricingData.fee.book?.toString() || "0"),
+        "bookFee",
+        formatRupiah(pricingData.fee.book?.toString() || "0")
       );
       form.setValue(
         "monthlyFee",
-        formatRupiah(pricingData.fee.monthly?.toString() || "0"),
+        formatRupiah(pricingData.fee.monthly?.toString() || "0")
       );
       form.setValue(
         "certificateFee",
-        formatRupiah(pricingData.fee.certificate?.toString() || "0"),
+        formatRupiah(pricingData.fee.certificate?.toString() || "0")
       );
       form.setValue(
         "medalFee",
-        formatRupiah(pricingData.fee.medal?.toString() || "0"),
+        formatRupiah(pricingData.fee.medal?.toString() || "0")
       );
       form.setValue(
         "trophyFee",
-        formatRupiah(pricingData.fee.trophy?.toString() || "0"),
-      );
-      form.setValue(
-        "additionalCost",
-        formatRupiah(pricingData.fee.aditional?.toString() || "0"),
+        formatRupiah(pricingData.fee.trophy?.toString() || "0")
       );
     } else {
-      form.setValue("bookPrice", "");
+      form.setValue("bookFee", "");
       form.setValue("monthlyFee", "");
       form.setValue("certificateFee", "");
       form.setValue("medalFee", "");
       form.setValue("trophyFee", "");
-      form.setValue("additionalCost", "");
     }
   }, [subjectId, pricingData, form]);
 
@@ -103,17 +96,16 @@ export default function PricingForm() {
     return !isNaN(parseInt(numberString, 10)) ? toNumber : "0";
   };
 
-  const mutation = usePostPricing();
+  const mutation = usePostSubjectPricing();
 
   const onSubmit = (values: z.infer<typeof pricingSchema>) => {
     mutation.mutate({
       ...values,
-      bookPrice: convertToNumber(values.bookPrice),
+      bookFee: convertToNumber(values.bookFee),
       monthlyFee: convertToNumber(values.monthlyFee),
       certificateFee: convertToNumber(values.certificateFee),
       medalFee: convertToNumber(values.medalFee),
       trophyFee: convertToNumber(values.trophyFee),
-      additionalCost: convertToNumber(values.additionalCost),
     });
   };
 
@@ -121,7 +113,7 @@ export default function PricingForm() {
     if (mutation.isSuccess && subjects) {
       form.reset();
     }
-  }, [mutation.isSuccess]);
+  }, [mutation.isSuccess, form, subjects]);
 
   return (
     <div className="max-w-lg mx-auto">
@@ -172,7 +164,7 @@ export default function PricingForm() {
             <Separator />
             <FormField
               control={form.control}
-              name="bookPrice"
+              name="bookFee"
               render={({ field }) => (
                 <FormItem className="grid grid-cols-2 items-center">
                   <FormLabel>Book Price</FormLabel>
@@ -188,7 +180,7 @@ export default function PricingForm() {
                         onChange={(e) => {
                           const inputValue = e.target.value;
                           const formattedValue = formatRupiah(inputValue);
-                          form.setValue("bookPrice", formattedValue);
+                          form.setValue("bookFee", formattedValue);
                         }}
                       />
                     </div>
@@ -300,34 +292,6 @@ export default function PricingForm() {
                           const inputValue = e.target.value;
                           const formattedValue = formatRupiah(inputValue);
                           form.setValue("trophyFee", formattedValue);
-                        }}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="additionalCost"
-              render={({ field }) => (
-                <FormItem className="grid grid-cols-2 items-center">
-                  <FormLabel>Additional Cost</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center">
-                      <code className="block px-1 py-1 h-9 font-bold bg-accent text-muted-foreground border rounded-l-md border-r-0">
-                        Rp.
-                      </code>
-                      <Input
-                        {...field}
-                        disabled={!currentSubject}
-                        className="rounded-l-none"
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          const formattedValue = formatRupiah(inputValue);
-                          form.setValue("additionalCost", formattedValue);
                         }}
                       />
                     </div>

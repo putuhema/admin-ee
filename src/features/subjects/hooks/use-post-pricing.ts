@@ -5,16 +5,18 @@ import { client } from "@/lib/rpc";
 import { toast } from "sonner";
 import { QUERY_KEY } from "./use-get-pricing";
 
-type RequestType = InferRequestType<
-  typeof client.api.subjects.pricing.$post
->["json"];
-type ResponseType = InferResponseType<typeof client.api.subjects.pricing.$post>;
+const $put = client.api.subjects["subject-pricing"]["$put"];
+type RequestType = InferRequestType<typeof $put>["json"];
+type ResponseType = InferResponseType<typeof $put>;
 
-export const usePostPricing = () => {
+export const usePostSubjectPricing = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async (data) => {
-      const res = await client.api.subjects.pricing.$post({ json: data });
+      const res = await $put({ json: data });
+      if (!res.ok) {
+        throw new Error("Failed to add subject pricing");
+      }
       return res.json();
     },
     onSuccess: () => {

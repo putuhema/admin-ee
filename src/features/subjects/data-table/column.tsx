@@ -52,18 +52,6 @@ export const columns: ColumnDef<SubjectPricingType[number]>[] = [
     },
   },
   {
-    id: "additionalCost",
-    header: () => <div className="text-center">Additional Cost</div>,
-    cell: ({ row }) => {
-      const additionalCost = row.original.fee.aditional!;
-      return (
-        <p className="text-center">
-          {additionalCost > 0 ? formatCurrency(additionalCost) : "-"}
-        </p>
-      );
-    },
-  },
-  {
     id: "actions",
     cell: () => {
       return (
@@ -77,9 +65,8 @@ export const columns: ColumnDef<SubjectPricingType[number]>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View Student</DropdownMenuItem>
-            <DropdownMenuItem>Modify Student</DropdownMenuItem>
-            <DropdownMenuItem>Delete Student</DropdownMenuItem>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

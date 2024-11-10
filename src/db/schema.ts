@@ -68,10 +68,10 @@ export const Student = pgTable("student", {
   isActive: boolean("is_active").default(true),
   notes: text("notes"),
   additionalInfo: text("additional_info"),
-  createdAt: timestamp("createdAt", { withTimezone: true })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
@@ -127,17 +127,19 @@ export const Subject = pgTable("subject", {
 
 export const SubjectPricing = pgTable("subject_pricing", {
   id: serial("id").primaryKey(),
-  subjectId: integer("subject_id").references(() => Subject.id),
+  subjectId: integer("subject_id")
+    .references(() => Subject.id)
+    .unique(),
   bookFee: integer("book_fee"),
   monthlyFee: integer("monthly_fee"),
   certificateFee: integer("certificate_fee"),
   medalFee: integer("medal_fee"),
   trophyFee: integer("trophy_fee"),
   isActive: boolean("is_active").default(true),
-  createdAt: timestamp("createdAt", { withTimezone: true })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true })
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
@@ -185,7 +187,7 @@ export const ProductCategory = pgTable("product_category", {
   description: text("description"),
 });
 
-export const Product = pgTable("post", {
+export const Product = pgTable("product", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").references(() => ProductCategory.id),
   name: varchar("name", { length: 255 }),
