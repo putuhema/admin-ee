@@ -6,43 +6,24 @@ async function seedProductCategory() {
   try {
     const productCategory = [
       {
-        name: "Books",
+        name: "Materi Pembelajaran",
         description:
-          "Materials and textbooks required for various subjects and levels.",
+          "Mencakup sumber daya penting seperti buku, alat pembelajaran khusus, dan tas untuk siswa.",
       },
       {
-        name: "Monthly Payments",
-        description: "Monthly payment options for ongoing tutoring services.",
+        name: "Pakaian",
+        description:
+          "Item pakaian seperti seragam dan pakaian bermerek untuk siswa yang mengikuti sesi bimbingan.",
       },
       {
-        name: "Specific Objects",
+        name: "Layanan Berlangganan",
         description:
-          "Items directly related to the tutoring process, including equipment and special learning tools.",
+          "Pembayaran berkala untuk layanan bimbingan bulanan, memberikan akses berkelanjutan ke sesi bimbingan.",
       },
       {
-        name: "Bags",
+        name: "Penghargaan",
         description:
-          "Bags designed for students to carry materials and supplies to tutoring classes.",
-      },
-      {
-        name: "Clothes",
-        description:
-          "Clothing items such as uniforms or branded attire for students attending tutoring sessions.",
-      },
-      {
-        name: "Certificates",
-        description:
-          "Certificates awarded to students for achievements or completion of courses.",
-      },
-      {
-        name: "Medals",
-        description:
-          "Medals presented to students as recognition of their accomplishments.",
-      },
-      {
-        name: "Trophies",
-        description:
-          "Trophies awarded to students to celebrate notable achievements in their learning journey.",
+          "Item yang diberikan kepada siswa untuk merayakan pencapaian mereka, termasuk sertifikat, medali, dan piala.",
       },
     ];
 

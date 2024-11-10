@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { SubjectPricing, Subject } from "@/db/schema";
+import { ProgramPrice, Program } from "@/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
@@ -9,67 +9,67 @@ import { z } from "zod";
 
 const app = new Hono()
   .get("/", async (c) => {
-    const subjects = await db
+    const programs = await db
       .select({
-        id: Subject.id,
-        name: Subject.name,
+        id: Program.id,
+        name: Program.name,
       })
-      .from(Subject);
+      .from(Program);
 
-    return c.json(subjects);
+    return c.json(programs);
   })
   .get("/pricing", async (c) => {
     const pricings = await db
       .select({
-        subjectName: Subject.name,
+        ProgramName: Program.name,
         fee: {
-          book: SubjectPricing.bookFee,
-          monthly: SubjectPricing.monthlyFee,
-          certificate: SubjectPricing.certificateFee,
-          medal: SubjectPricing.medalFee,
-          trophy: SubjectPricing.trophyFee,
+          book: ProgramPrice.bookFee,
+          monthly: ProgramPrice.monthlyFee,
+          certificate: ProgramPrice.certificateFee,
+          medal: ProgramPrice.medalFee,
+          trophy: ProgramPrice.trophyFee,
         },
       })
-      .from(SubjectPricing)
-      .leftJoin(Subject, eq(SubjectPricing.subjectId, Subject.id))
-      .orderBy(Subject.name);
+      .from(ProgramPrice)
+      .leftJoin(Program, eq(ProgramPrice.programId, Program.id))
+      .orderBy(Program.name);
 
     return c.json(pricings);
   })
   .get(
-    "/pricing/:subjectId",
+    "/pricing/:programId",
     zValidator(
       "param",
       z.object({
-        subjectId: z.string(),
+        programId: z.string(),
       })
     ),
     async (c) => {
-      const { subjectId } = c.req.valid("param");
+      const { programId } = c.req.valid("param");
 
       const [pricings] = await db
         .select({
-          subjectName: Subject.name,
+          ProgramName: Program.name,
           fee: {
-            book: SubjectPricing.bookFee,
-            monthly: SubjectPricing.monthlyFee,
-            certificate: SubjectPricing.certificateFee,
-            medal: SubjectPricing.medalFee,
-            trophy: SubjectPricing.trophyFee,
+            book: ProgramPrice.bookFee,
+            monthly: ProgramPrice.monthlyFee,
+            certificate: ProgramPrice.certificateFee,
+            medal: ProgramPrice.medalFee,
+            trophy: ProgramPrice.trophyFee,
           },
         })
-        .from(SubjectPricing)
-        .leftJoin(Subject, eq(SubjectPricing.subjectId, Subject.id))
-        .where(eq(Subject.id, parseInt(subjectId)));
+        .from(ProgramPrice)
+        .leftJoin(Program, eq(ProgramPrice.programId, Program.id))
+        .where(eq(Program.id, parseInt(programId)));
 
       return c.json(pricings);
     }
   )
-  .put("/subject-pricing", zValidator("json", pricingSchema), async (c) => {
+  .put("/Program-pricing", zValidator("json", pricingSchema), async (c) => {
     const validatedData = c.req.valid("json");
 
     const feeData = {
-      subjectId: validatedData.subjectId,
+      programId: validatedData.programId,
       bookFee: Number(validatedData.bookFee),
       monthlyFee: Number(validatedData.monthlyFee),
       certificateFee: Number(validatedData.certificateFee),
@@ -78,10 +78,10 @@ const app = new Hono()
     };
 
     const [data] = await db
-      .insert(SubjectPricing)
+      .insert(ProgramPrice)
       .values(feeData)
       .onConflictDoUpdate({
-        target: SubjectPricing.subjectId,
+        target: ProgramPrice.programId,
         set: feeData,
       })
       .returning();

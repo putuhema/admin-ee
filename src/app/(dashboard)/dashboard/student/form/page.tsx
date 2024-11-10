@@ -1,4 +1,4 @@
-import { getSubjects } from "@/lib/subjects";
+import { getSubjects } from "@/features/subjects/hooks/use-get-subjects";
 import StudentForm from "./forms";
 import {
   dehydrate,

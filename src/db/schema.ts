@@ -113,7 +113,7 @@ export const StudentGuardian = pgTable("student_guardian", {
 
 export type StudentType = typeof Student.$inferSelect;
 
-export const Subject = pgTable("subject", {
+export const Program = pgTable("program", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }),
   description: text("description"),
@@ -125,10 +125,42 @@ export const Subject = pgTable("subject", {
     .defaultNow(),
 });
 
-export const SubjectPricing = pgTable("subject_pricing", {
+export const Level = pgTable("level", {
   id: serial("id").primaryKey(),
-  subjectId: integer("subject_id")
-    .references(() => Subject.id)
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const ProgramLevel = pgTable("program_level", {
+  id: serial("id").primaryKey(),
+  programId: integer("program_id")
+    .notNull()
+    .references(() => Program.id),
+  levelId: integer("level_id")
+    .notNull()
+    .references(() => Level.id),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type ProgramLevelType = typeof ProgramLevel.$inferSelect;
+
+export const ProgramPrice = pgTable("program_price", {
+  id: serial("id").primaryKey(),
+  programId: integer("program_id")
+    .references(() => Program.id)
     .unique(),
   bookFee: integer("book_fee"),
   monthlyFee: integer("monthly_fee"),
@@ -144,41 +176,40 @@ export const SubjectPricing = pgTable("subject_pricing", {
     .defaultNow(),
 });
 
-export type SubjectPricingType = typeof SubjectPricing.$inferSelect;
+export type ProgramPriceType = typeof ProgramPrice.$inferSelect;
 
 export const Enrollment = pgTable("enrollment", {
   id: serial("id").primaryKey(),
   studentId: integer("student_id").references(() => Student.id),
-  subjectId: integer("subject_id").references(() => Subject.id),
-  enrollmentDate: timestamp("enrollment_date", { withTimezone: true }),
+  programId: integer("program_id").references(() => Program.id),
   status: varchar("status", { length: 255 }),
+  programPriceId: integer("program_price_id").references(() => Program.id),
   enrollmentFee: integer("enrollment_fee"),
+  enrollmentDate: timestamp("enrollment_date", { withTimezone: true }),
   notes: text("notes"),
 });
 
 export const EnrollmentItem = pgTable("enrollment_item", {
   id: serial("id").primaryKey(),
   enrollmentId: integer("enrollment_id").references(() => Enrollment.id),
-  subjectPricingId: integer("subject_pricing_id").references(
-    () => SubjectPricing.id
-  ),
-  productId: integer("product_id").references(() => Product.id),
-  MonthlyPackageId: integer("monthly_package_id").references(
-    () => MonthlyPackage.id
-  ),
   itemType: varchar("item_type", { length: 255 }),
+  productId: integer("product_id").references(() => Product.id),
+  meetingPackageId: integer("meeting_package_id").references(
+    () => MeetingPackage.id
+  ),
   quantity: integer("quantity"),
   unit_price: integer("unit_price"),
   total_price: integer("total_price"),
-  createdAt: timestamp("created_at", { withTimezone: true }),
-  updatedAt: timestamp("updated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-export const MonthlyPackage = pgTable("monthly_package", {
+export const MeetingPackage = pgTable("meeting_package", {
   id: serial("id").primaryKey(),
-  package: varchar("package", { length: 255 }),
-  packageTaken: integer("package_taken"),
-  enrollmentId: integer("enrollment_id").references(() => Enrollment.id),
+  name: varchar("name", { length: 50 }),
+  count: integer("count"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const ProductCategory = pgTable("product_category", {
@@ -192,6 +223,7 @@ export const Product = pgTable("product", {
   categoryId: integer("category_id").references(() => ProductCategory.id),
   name: varchar("name", { length: 255 }),
   price: integer("price"),
+  programId: integer("program_id").references(() => Program.id),
   description: text("description"),
 });
 
@@ -234,10 +266,10 @@ export const PaymentDetail = pgTable("payment_detail", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-export const EnrollmentSubjects = pgTable("enrollment_subjects", {
+export const EnrolledProgram = pgTable("enrolled_program", {
   id: serial("id").primaryKey(),
   enrollmentId: integer("enrollment_id").references(() => Enrollment.id),
-  subjectId: integer("subject_id").references(() => Subject.id),
+  programId: integer("program_id").references(() => Program.id),
 });
 
 // Relations start here
@@ -265,33 +297,40 @@ export const studentGuardianRelations = relations(
   })
 );
 
-export const subjectRelations = relations(Subject, ({ many }) => ({
+export const programRelations = relations(Program, ({ many }) => ({
   enrollments: many(Enrollment),
-  pricings: many(SubjectPricing),
-  enrollmentSubjects: many(EnrollmentSubjects),
+  pricings: many(ProgramPrice),
+  enrollmentSubjects: many(EnrolledProgram),
+  programLevels: many(ProgramLevel),
 }));
 
-export const pricingRelations = relations(SubjectPricing, ({ one, many }) => ({
-  subject: one(Subject, {
-    fields: [SubjectPricing.subjectId],
-    references: [Subject.id],
-  }),
-  payments: many(Payment),
-}));
+export const programPriceRelations = relations(
+  ProgramPrice,
+  ({ one, many }) => ({
+    program: one(Program, {
+      fields: [ProgramPrice.programId],
+      references: [Program.id],
+    }),
+    payments: many(Payment),
+  })
+);
 
 export const enrollmentRelations = relations(Enrollment, ({ one, many }) => ({
   student: one(Student, {
     fields: [Enrollment.studentId],
     references: [Student.id],
   }),
-  subject: one(Subject, {
-    fields: [Enrollment.subjectId],
-    references: [Subject.id],
+  program: one(Program, {
+    fields: [Enrollment.programId],
+    references: [Program.id],
+  }),
+  programPrice: one(ProgramPrice, {
+    fields: [Enrollment.programPriceId],
+    references: [ProgramPrice.id],
   }),
   tutorSchedules: many(Schedule),
   paymentRecords: many(Payment),
   enrollmentItems: many(EnrollmentItem),
-  monthlyPackage: many(MonthlyPackage),
 }));
 
 export const enrollmentItemRelations = relations(EnrollmentItem, ({ one }) => ({
@@ -299,17 +338,13 @@ export const enrollmentItemRelations = relations(EnrollmentItem, ({ one }) => ({
     fields: [EnrollmentItem.enrollmentId],
     references: [Enrollment.id],
   }),
-  subjectPricing: one(SubjectPricing, {
-    fields: [EnrollmentItem.subjectPricingId],
-    references: [SubjectPricing.id],
-  }),
   product: one(Product, {
     fields: [EnrollmentItem.productId],
     references: [Product.id],
   }),
-  monthlyPackage: one(MonthlyPackage, {
-    fields: [EnrollmentItem.MonthlyPackageId],
-    references: [MonthlyPackage.id],
+  monthlyPackage: one(MeetingPackage, {
+    fields: [EnrollmentItem.meetingPackageId],
+    references: [MeetingPackage.id],
   }),
 }));
 
@@ -357,27 +392,42 @@ export const paymentRelations = relations(Payment, ({ one, many }) => ({
   details: many(PaymentDetail),
 }));
 
-export const enrollmentSubjectsRelations = relations(
-  EnrollmentSubjects,
+export const enrolledProgramRelations = relations(
+  EnrolledProgram,
   ({ one }) => ({
     enrollment: one(Enrollment, {
-      fields: [EnrollmentSubjects.enrollmentId],
+      fields: [EnrolledProgram.enrollmentId],
       references: [Enrollment.id],
     }),
-    subject: one(Subject, {
-      fields: [EnrollmentSubjects.subjectId],
-      references: [Subject.id],
+    program: one(Program, {
+      fields: [EnrolledProgram.programId],
+      references: [Program.id],
     }),
   })
 );
 
-export const monthlyPackageRelations = relations(
-  MonthlyPackage,
+export const meetingPackageRelations = relations(
+  MeetingPackage,
   ({ one, many }) => ({
     enrollment: one(Enrollment, {
-      fields: [MonthlyPackage.enrollmentId],
+      fields: [MeetingPackage.id],
       references: [Enrollment.id],
     }),
     enrollmentItems: many(EnrollmentItem),
   })
 );
+
+export const levelRelations = relations(Level, ({ many }) => ({
+  programLevels: many(ProgramLevel),
+}));
+
+export const programLevelRelations = relations(ProgramLevel, ({ one }) => ({
+  program: one(Program, {
+    fields: [ProgramLevel.programId],
+    references: [Program.id],
+  }),
+  level: one(Level, {
+    fields: [ProgramLevel.levelId],
+    references: [Level.id],
+  }),
+}));

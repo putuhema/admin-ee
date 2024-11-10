@@ -1,10 +1,10 @@
-import { getSubjects } from "@/lib/subjects";
 import {
   dehydrate,
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
 import PaymentForm from "./form";
+import { getSubjects } from "@/features/subjects/hooks/use-get-subjects";
 
 export default async function StudentFormPage() {
   const queryClient = new QueryClient();
