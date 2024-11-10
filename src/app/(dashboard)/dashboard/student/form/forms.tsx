@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import {
   Form,
@@ -8,13 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -27,12 +21,14 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { studentSchema } from "@/lib/zod-schema";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useGetSubjects } from "@/features/subjects/hooks/use-get-subjects";
 import { usePostStudents } from "@/features/students/hooks/use-post-students";
+import { studentSchema } from "@/features/students/schema";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function StudentForm() {
   const { data: subjects } = useGetSubjects();
@@ -45,8 +41,11 @@ export default function StudentForm() {
       name: "",
       nickname: "",
       dateOfBirth: new Date(),
-      joinDate: new Date(),
-      subjectId: 0,
+      email: "",
+      additionalInfo: "",
+      address: "",
+      phoneNumber: "",
+      notes: "",
     },
   });
 
@@ -57,7 +56,6 @@ export default function StudentForm() {
   React.useEffect(() => {
     if (mutation.isSuccess && subjects) {
       form.reset();
-      form.setValue("subjectId", subjects[0].id);
     }
   }, [mutation.isSuccess, subjects]);
 
@@ -104,125 +102,117 @@ export default function StudentForm() {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
-          name="subjectId"
+          name="dateOfBirth"
           render={({ field }) => (
             <FormItem className="flex-1">
-              <FormLabel>Subject</FormLabel>
+              <FormLabel>Date of Birth</FormLabel>
               <FormControl>
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(parseInt(value));
-                  }}
-                  defaultValue={field.value.toString()}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects &&
-                      subjects.map((subject) => (
-                        <SelectItem
-                          key={subject.id}
-                          value={subject.id.toString()}
-                          className="capitalize"
-                        >
-                          {subject.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <FormControl>
+                <Input type="text" className="w-full" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div>
+          <p className="text-muted-foreground">Contact Information</p>
+          <Separator />
+        </div>
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" className="w-full" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input className="w-full" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="additionalInfo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional Information</FormLabel>
+              <FormControl>
+                <Input className="w-full" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex gap-2">
-          <FormField
-            control={form.control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Date of Birth</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea className="w-full" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="joinDate"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Join Date</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
         <Button disabled={mutation.isPending} type="submit">
           {mutation.isPending ? (
             <Loader2 className="text-muted-foreground w-4 h-4 animate-spin" />

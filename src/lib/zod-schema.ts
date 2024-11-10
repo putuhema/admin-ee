@@ -13,10 +13,3 @@ export const paymentSchema = z.object({
 
 export type PaymentForm = z.infer<typeof paymentSchema>;
 
-export const studentSchema = z.object({
-  name: z.string(),
-  nickname: z.string(),
-  subjectId: z.number(),
-  dateOfBirth: z.coerce.date().optional(),
-  joinDate: z.coerce.date().optional(),
-});

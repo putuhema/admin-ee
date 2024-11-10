@@ -31,20 +31,15 @@ export const columns: ColumnDef<StudentType[number]>[] = [
     cell: ({ row }) => {
       const formmatedDAte = format(
         new Date(row.getValue("dateOfBirth")),
-        "PPP",
+        "PPP"
       );
 
       return <span>{formmatedDAte}</span>;
     },
   },
   {
-    accessorKey: "joinDate",
-    header: "Join Date",
-    cell: ({ row }) => {
-      const formmatedDAte = format(new Date(row.getValue("joinDate")), "PPP");
-
-      return <span>{formmatedDAte}</span>;
-    },
+    accessorKey: "address",
+    header: "Address",
   },
   {
     id: "actions",

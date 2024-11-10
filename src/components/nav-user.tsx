@@ -2,11 +2,8 @@
 
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,9 +25,9 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { User } from "@/db/schema";
+import { UserType } from "@/db/schema";
 
-export function NavUser({ user }: { user: User | null }) {
+export function NavUser({ user }: { user: UserType | null }) {
   const { isMobile } = useSidebar();
 
   const router = useRouter();

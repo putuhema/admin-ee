@@ -1,5 +1,6 @@
 import { db } from "@/db";
-import { Pricing, PricingType, Subject } from "@/db/schema";
+import { SubjectPricing, Subject } from "@/db/schema";
+import { type SubjectPricingType } from "@/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
@@ -23,16 +24,15 @@ const app = new Hono()
       .select({
         subjectName: Subject.name,
         fee: {
-          book: Pricing.bookPrice,
-          monthly: Pricing.monthlyFee,
-          certificate: Pricing.certificateFee,
-          medal: Pricing.medalFee,
-          trophy: Pricing.trophyFee,
-          aditional: Pricing.additionalCost,
+          book: SubjectPricing.bookFee,
+          monthly: SubjectPricing.monthlyFee,
+          certificate: SubjectPricing.certificateFee,
+          medal: SubjectPricing.medalFee,
+          trophy: SubjectPricing.trophyFee,
         },
       })
-      .from(Pricing)
-      .leftJoin(Subject, eq(Pricing.subjectId, Subject.id))
+      .from(SubjectPricing)
+      .leftJoin(Subject, eq(SubjectPricing.subjectId, Subject.id))
       .orderBy(Subject.name);
 
     return c.json(pricings);
@@ -52,16 +52,15 @@ const app = new Hono()
         .select({
           subjectName: Subject.name,
           fee: {
-            book: Pricing.bookPrice,
-            monthly: Pricing.monthlyFee,
-            certificate: Pricing.certificateFee,
-            medal: Pricing.medalFee,
-            trophy: Pricing.trophyFee,
-            aditional: Pricing.additionalCost,
+            book: SubjectPricing.bookFee,
+            monthly: SubjectPricing.monthlyFee,
+            certificate: SubjectPricing.certificateFee,
+            medal: SubjectPricing.medalFee,
+            trophy: SubjectPricing.trophyFee,
           },
         })
-        .from(Pricing)
-        .leftJoin(Subject, eq(Pricing.subjectId, Subject.id))
+        .from(SubjectPricing)
+        .leftJoin(Subject, eq(SubjectPricing.subjectId, Subject.id))
         .where(eq(Subject.id, parseInt(subjectId)));
 
       return c.json(pricings);
@@ -71,44 +70,42 @@ const app = new Hono()
     const validatedData = c.req.valid("json");
 
     const data = await db.transaction(async (tx) => {
-      let pricing: PricingType;
+      let pricing: SubjectPricingType;
 
       const isPricingExist = await tx
         .select()
-        .from(Pricing)
-        .where(eq(Pricing.subjectId, validatedData.subjectId))
+        .from(SubjectPricing)
+        .where(eq(SubjectPricing.subjectId, validatedData.subjectId))
         .limit(1);
 
       if (isPricingExist.length > 0) {
         await tx
-          .update(Pricing)
+          .update(SubjectPricing)
           .set({
             subjectId: validatedData.subjectId,
-            bookPrice: parseInt(validatedData.bookPrice),
+            bookFee: parseInt(validatedData.bookPrice),
             monthlyFee: parseInt(validatedData.monthlyFee),
             certificateFee: parseInt(validatedData.certificateFee),
             medalFee: parseInt(validatedData.medalFee),
             trophyFee: parseInt(validatedData.trophyFee),
-            additionalCost: parseInt(validatedData.additionalCost),
           })
-          .where(eq(Pricing.subjectId, validatedData.subjectId));
+          .where(eq(SubjectPricing.subjectId, validatedData.subjectId));
 
         [pricing] = await tx
           .select()
-          .from(Pricing)
-          .where(eq(Pricing.subjectId, validatedData.subjectId))
+          .from(SubjectPricing)
+          .where(eq(SubjectPricing.subjectId, validatedData.subjectId))
           .limit(1);
       } else {
         [pricing] = await tx
-          .insert(Pricing)
+          .insert(SubjectPricing)
           .values({
             subjectId: validatedData.subjectId,
-            bookPrice: parseInt(validatedData.bookPrice),
+            bookFee: parseInt(validatedData.bookPrice),
             monthlyFee: parseInt(validatedData.monthlyFee),
             certificateFee: parseInt(validatedData.certificateFee),
             medalFee: parseInt(validatedData.medalFee),
             trophyFee: parseInt(validatedData.trophyFee),
-            additionalCost: parseInt(validatedData.additionalCost),
           })
           .returning();
       }

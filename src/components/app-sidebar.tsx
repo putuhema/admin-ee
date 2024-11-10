@@ -21,7 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { User } from "@/db/schema";
+import {  UserType } from "@/db/schema";
 
 const data = {
   navMain: [
@@ -82,7 +82,7 @@ const data = {
 };
 
 interface Props extends React.ComponentProps<typeof Sidebar> {
-  user: User | null;
+  user: UserType | null;
 }
 
 export function AppSidebar({ user, ...props }: Props) {

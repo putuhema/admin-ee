@@ -134,7 +134,7 @@ export const SubjectPricing = pgTable("subject_pricing", {
   updatedAt: timestamp("updated_at", { withTimezone: true }),
 });
 
-export type PricingType = typeof SubjectPricing.$inferSelect;
+export type  SubjectPricingType = typeof SubjectPricing.$inferSelect;
 
 export const Enrollment = pgTable("enrollment", {
   id: serial("id").primaryKey(),
