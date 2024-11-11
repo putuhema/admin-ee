@@ -21,7 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {  UserType } from "@/db/schema";
+import { UserType } from "@/db/schema";
 
 const data = {
   navMain: [
@@ -31,13 +31,13 @@ const data = {
       icon: SquareTerminal,
     },
     {
-      title: "Subjects",
-      url: "#",
+      title: "Programs",
+      url: "/dashboard/programs",
       icon: Bot,
       items: [
         {
           title: "Pricing",
-          url: "/dashboard/subjects/pricing",
+          url: "/dashboard/programs/pricing",
         },
         {
           title: "Explorer",

@@ -4,7 +4,7 @@ import { handle } from "hono/vercel";
 import subjects from "@/features/subjects/route";
 import students from "@/features/students/route";
 import enrollements from "@/features/enrollment/route";
-import products from "@/features/products/route";
+import programs from "@/app/(dashboard)/dashboard/programs/_features/route";
 
 const app = new Hono().basePath("/api");
 
@@ -13,7 +13,8 @@ const routes = app
   .route("/subjects", subjects)
   .route("/students", students)
   .route("/enrollement", enrollements)
-  .route("/products", products);
+  .route("/programs", programs);
+
 export const GET = handle(app);
 export const POST = handle(app);
 export const PUT = handle(app);
