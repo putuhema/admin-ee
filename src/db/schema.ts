@@ -143,9 +143,9 @@ export const Program = pgTable(
   "program",
   {
     id: serial("id").primaryKey(),
-    name: varchar("name", { length: 255 }),
-    description: text("description"),
-    pricePerMeeting: integer("price_per_meeting"),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: text("description").notNull(),
+    pricePerMeeting: integer("price_per_meeting").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

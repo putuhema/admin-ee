@@ -7,8 +7,12 @@ export default function Table() {
   const { data } = useGetPrograms();
 
   if (!data) {
-    return null;
+    return <div className="w-full text-center animate-pulse">Loading...</div>;
   }
 
-  return <DataTable columns={columns} data={data} />;
+  return (
+    <>
+      <DataTable columns={columns} data={data} />;
+    </>
+  );
 }

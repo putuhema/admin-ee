@@ -18,3 +18,23 @@ export function useGetPrograms() {
 
   return query;
 }
+
+export async function getProgram(programId: number) {
+  const res = await client["api"]["programs"][":programId"]["$get"]({
+    param: { programId: programId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error("Program not found");
+  }
+  return res.json();
+}
+
+export function useGetProgram(programId: number) {
+  const query = useQuery({
+    queryKey: ["program", programId],
+    queryFn: async () => getProgram(programId),
+    enabled: !!programId,
+  });
+
+  return query;
+}
