@@ -1,4 +1,5 @@
 "use client";
+
 import { MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSheetStore } from "@/lib/store";
 import FormSheet, { SHEET_ID } from "./form-sheet";
+import ProgramExtraSheet, {
+  SHEET_ID as PROGRAM_EXTRA_FEE_SHEET_ID,
+} from "./program-extra-sheet";
 
 export default function DropdownAction({ programId }: { programId: number }) {
   const { toggleSheet } = useSheetStore();
@@ -28,6 +32,13 @@ export default function DropdownAction({ programId }: { programId: number }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
+            toggleSheet(PROGRAM_EXTRA_FEE_SHEET_ID + programId, true);
+          }}
+        >
+          Extra Fee(s)
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
             toggleSheet(SHEET_ID + programId, true);
           }}
         >
@@ -38,6 +49,7 @@ export default function DropdownAction({ programId }: { programId: number }) {
         </DropdownMenuItem>
       </DropdownMenuContent>
       <FormSheet id={programId} />
+      <ProgramExtraSheet id={programId} />
     </DropdownMenu>
   );
 }

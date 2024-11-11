@@ -156,20 +156,26 @@ export const Program = pgTable(
   (t) => [index("program_name_idx").on(t.name)]
 );
 
-export const ProgramExtra = pgTable("program_extra", {
-  id: serial("id").primaryKey(),
-  programId: integer("program_id").references(() => Program.id),
-  type: varchar("type", { length: 255 }),
-  description: text("description"),
-  price: integer("price"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const ProgramExtra = pgTable(
+  "program_extra",
+  {
+    id: serial("id").primaryKey(),
+    programId: integer("program_id").references(() => Program.id),
+    type: varchar("type", { length: 255 }),
+    description: text("description"),
+    price: integer("price"),
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("program_extra_program_id_type_idx").on(t.programId, t.type),
+  ]
+);
 
 export const ProgramLevel = pgTable("program_level", {
   id: serial("id").primaryKey(),

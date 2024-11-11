@@ -1,11 +1,4 @@
 import * as React from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,11 +18,12 @@ import { programSchema, Program } from "../schema";
 import { Textarea } from "@/components/ui/textarea";
 import { usePutProgram } from "../hooks/put";
 import { Loader2 } from "lucide-react";
+import CustomSheet from "@/components/custom-sheet";
 
 export const SHEET_ID = "PROGRAM_FORM_SHEET";
 
 export default function FormSheet({ id }: { id: number }) {
-  const { getSheet, toggleSheet } = useSheetStore();
+  const { toggleSheet } = useSheetStore();
   const { data } = useGetProgram(id);
 
   const form = useForm<Program>({
@@ -38,6 +32,7 @@ export default function FormSheet({ id }: { id: number }) {
       name: "",
       description: "",
       pricePerMeeting: "",
+      extra: [],
     },
   });
 
@@ -87,86 +82,77 @@ export default function FormSheet({ id }: { id: number }) {
   }
 
   return (
-    <Sheet
-      open={getSheet(SHEET_ID + id)?.isOpen}
-      onOpenChange={(open) => {
-        toggleSheet(SHEET_ID + id, open);
-      }}
+    <CustomSheet
+      SHEET_ID={SHEET_ID + id}
+      title="Programs"
+      desc="Add or Edit Programs"
     >
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Programs Form</SheetTitle>
-          <SheetDescription>
-            Please fill out the form to modify or create a new program.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="mt-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Description</FormLabel>
-                    <FormControl>
-                      <Textarea className="min-h-[150px]" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pricePerMeeting"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Medals Fee</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center">
-                        <code className="block px-2 py-1 h-9 text-sm grid place-content-center font-bold bg-accent text-muted-foreground border rounded-l-md border-r-0">
-                          Rp.
-                        </code>
-                        <Input
-                          {...field}
-                          className="rounded-l-none"
-                          onChange={(e) => {
-                            const inputValue = e.target.value;
-                            const formattedValue = formatRupiah(inputValue);
-                            form.setValue("pricePerMeeting", formattedValue);
-                          }}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <div className="mt-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Programs Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Programs Description</FormLabel>
+                  <FormControl>
+                    <Textarea className="min-h-[150px]" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="pricePerMeeting"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Program Price</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center">
+                      <code className="px-2 py-1 h-9 text-sm grid place-content-center font-bold bg-accent text-muted-foreground border rounded-l-md border-r-0">
+                        Rp.
+                      </code>
+                      <Input
+                        {...field}
+                        className="rounded-l-none"
+                        onChange={(e) => {
+                          const inputValue = e.target.value;
+                          const formattedValue = formatRupiah(inputValue);
+                          form.setValue("pricePerMeeting", formattedValue);
+                        }}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <Button disabled={mutation.isPending} type="submit">
-                {mutation.isPending ? (
-                  <Loader2 className="w-h h-4  animate-spin" />
-                ) : (
-                  "Save"
-                )}
-              </Button>
-            </form>
-          </Form>
-        </div>
-      </SheetContent>
-    </Sheet>
+            <Button disabled={mutation.isPending} type="submit">
+              {mutation.isPending ? (
+                <Loader2 className="w-h h-4  animate-spin" />
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </CustomSheet>
   );
 }

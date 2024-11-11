@@ -38,3 +38,23 @@ export function useGetProgram(programId: number) {
 
   return query;
 }
+
+export function useGetProgramExtra(programId: number, enabled: boolean) {
+  const query = useQuery({
+    queryKey: ["program-extra", programId],
+    queryFn: async () => {
+      const res = await client["api"]["programs"]["extra"][":programId"][
+        "$get"
+      ]({
+        param: { programId: programId.toString() },
+      });
+      if (!res.ok) {
+        throw new Error("Program extra not found");
+      }
+      return res.json();
+    },
+    enabled: !!programId && enabled,
+  });
+
+  return query;
+}
