@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { type ResponseType } from "../hooks/get";
 import DropdownAction from "../components/dropdown-action";
 import { cn, formatCurrency } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 export const columns: ColumnDef<ResponseType[number]>[] = [
   {
@@ -44,9 +45,29 @@ export const columns: ColumnDef<ResponseType[number]>[] = [
     },
   },
   {
+    id: "extra",
+    header: () => <div className="text-center">Program Extra Fee</div>,
+    cell: ({ row }) => {
+      const extras = row.original.extra;
+      return (
+        <div>
+          {extras.map((extra: { type: string; price: number }) => (
+            <div key={extra.type}>
+              <div className="flex justify-between items-center text-muted-foreground hover:text-foreground cursor-pointer">
+                <span className="capitalize">{extra.type}</span>
+                <span>{formatCurrency(extra.price)}</span>
+              </div>
+              <Separator />
+            </div>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
-      const programId = row.original.id;
+      const programId = row.original.id!;
       return <DropdownAction programId={programId} />;
     },
   },

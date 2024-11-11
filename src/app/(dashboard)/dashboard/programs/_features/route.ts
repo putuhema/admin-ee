@@ -8,9 +8,32 @@ import { extraFeeSchema, programSchema } from "./schema";
 
 const app = new Hono()
   .get("/", async (c) => {
-    const programs = await db.select().from(Program).orderBy(asc(Program.name));
+    const programs = await db
+      .select({
+        id: Program.id,
+        name: Program.name,
+        description: Program.description,
+        pricePerMeeting: Program.pricePerMeeting,
+        extra: sql`json_agg(
+            json_build_object('type', ${ProgramExtra.type}, 'price', ${ProgramExtra.price})
+          )`,
+      })
+      .from(Program)
+      .leftJoin(ProgramExtra, eq(Program.id, ProgramExtra.programId))
+      .groupBy(Program.id)
+      .orderBy(asc(Program.name));
 
-    return c.json(programs, 200);
+    const parsePrograms = programs.map((program) => {
+      const extraArray = Array.isArray(program.extra)
+        ? program.extra
+        : JSON.parse(program.extra as string);
+      return {
+        ...program,
+        extra: extraArray,
+      };
+    });
+
+    return c.json(parsePrograms, 200);
   })
   .get(
     "/:programId",

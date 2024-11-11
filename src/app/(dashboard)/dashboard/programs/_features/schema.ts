@@ -27,3 +27,8 @@ export const extraFeeSchema = z.object({
 });
 
 export type ExtraFee = z.infer<typeof extraFeeSchema>;
+
+export const ProgramExtraResponse = z.object({
+  type: z.string(),
+  price: z.string(),
+});
