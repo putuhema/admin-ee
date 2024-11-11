@@ -1,10 +1,10 @@
 import "../../../drizzle/envConfig";
 import { db } from "../index";
-import { Subject } from "../schema";
+import { Program } from "../schema";
 
 async function seedSubjects() {
   try {
-    const subjects = [
+    const programs = [
       {
         name: "abama",
         description:
@@ -57,12 +57,12 @@ async function seedSubjects() {
       },
     ];
 
-    console.log("🌱 Seeding subjects...");
-    await db.insert(Subject).values(subjects);
-    console.log("✅ Subjects seeded successfully");
+    console.log("🌱 Seeding Programs...");
+    await db.insert(Program).values(programs);
+    console.log("✅ Program seeded successfully");
     process.exit(0);
   } catch (error) {
-    console.error("Error seeding subjects:", error);
+    console.error("Error seeding programs:", error);
     process.exit(1);
   }
 }

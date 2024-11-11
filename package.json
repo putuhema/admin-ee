@@ -9,8 +9,7 @@
     "lint": "next lint",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "seed:subjects": "tsx src/db/seed/subjects.ts",
-    "seed:product-category": "tsx src/db/seed/product-category.ts"
+    "seed:programs": "tsx src/db/seed/programs.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.1",
