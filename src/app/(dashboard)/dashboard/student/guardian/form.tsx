@@ -10,49 +10,115 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { usePostStudents } from "@/features/students/hooks/use-post-students";
-import { studentSchema } from "@/features/students/schema";
+import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { studentGuardianSchema } from "@/features/students/schema";
+import NameSearchInput from "@/components/name-search-input";
+import { Switch } from "@/components/ui/switch";
+import { usePostGuardians } from "@/features/students/hooks/post-student-guardian";
 
-export default function StudentForm() {
-  const mutation = usePostStudents();
+const possibleRelationships = [
+  "Parent",
+  "Step-Parent",
+  "Legal Guardian",
+  "Grandparent",
+  "Sibling",
+  "Aunt/Uncle",
+  "Foster Parent",
+  "Family Friend",
+  "Other Relative",
+  "Guardian by Appointment",
+  "Sponsor",
+];
 
-  const form = useForm<z.infer<typeof studentSchema>>({
-    resolver: zodResolver(studentSchema),
+export default function GuardianForm() {
+  const mutation = usePostGuardians();
+
+  const form = useForm<z.infer<typeof studentGuardianSchema>>({
+    resolver: zodResolver(studentGuardianSchema),
     defaultValues: {
+      relationship: "",
       name: "",
-      nickname: "",
-      dateOfBirth: new Date(),
       email: "",
-      additionalInfo: "",
+      isPrimary: false,
+      occupation: "",
       address: "",
       phoneNumber: "",
       notes: "",
     },
   });
 
-  async function onSubmit(formData: z.infer<typeof studentSchema>) {
+  async function onSubmit(formData: z.infer<typeof studentGuardianSchema>) {
     mutation.mutate(formData);
   }
 
+  React.useEffect(() => {
+    if (mutation.isSuccess) {
+      form.reset();
+    }
+  }, [mutation.isSuccess, form]);
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <NameSearchInput form={form} name="studentId" />
+        <FormField
+          control={form.control}
+          name="isPrimary"
+          render={({ field }) => (
+            <FormItem className="grid grid-cols-2 items-center">
+              <FormLabel>Is primary guardian?</FormLabel>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="relationship"
+          render={({ field }) => (
+            <FormItem className="grid grid-cols-2 items-center">
+              <FormLabel>Relationship</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Relationships" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {possibleRelationships.map((relationship) => (
+                      <SelectItem key={relationship} value={relationship}>
+                        {relationship}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="name"
@@ -66,60 +132,6 @@ export default function StudentForm() {
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="nickname"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nickname</FormLabel>
-              <FormControl>
-                <Input type="text" className="w-full" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="dateOfBirth"
-          render={({ field }) => (
-            <FormItem className="flex-1">
-              <FormLabel>Date of Birth</FormLabel>
-              <FormControl>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <FormField
           control={form.control}
           name="address"
@@ -128,6 +140,19 @@ export default function StudentForm() {
               <FormLabel>Address</FormLabel>
               <FormControl>
                 <Input type="text" className="w-full" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="occupation"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Occupation</FormLabel>
+              <FormControl>
+                <Input className="w-full" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -157,20 +182,7 @@ export default function StudentForm() {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input className="w-full" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="additionalInfo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Additional Information</FormLabel>
-              <FormControl>
-                <Input className="w-full" {...field} />
+                <Input {...field} placeholder="Enter your number" />
               </FormControl>
               <FormMessage />
             </FormItem>

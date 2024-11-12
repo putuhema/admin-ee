@@ -13,3 +13,15 @@ export const studentSchema = z.object({
   additionalInfo: z.string().optional(),
   notes: z.string().optional(),
 });
+
+export const studentGuardianSchema = z.object({
+  studentId: z.string(),
+  name: z.string().min(1, { message: "Name cannot be empty" }).max(100),
+  email: z.string().optional(),
+  phoneNumber: z.string(),
+  address: z.string(),
+  occupation: z.string(),
+  isPrimary: z.boolean().default(false),
+  relationship: z.string(),
+  notes: z.string().optional(),
+});

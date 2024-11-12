@@ -1,10 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
 import { db } from "@/db";
-import { Student } from "@/db/schema";
+import { Guardian, Student, StudentGuardian } from "@/db/schema";
 import { Hono } from "hono";
 import { eq, ilike } from "drizzle-orm";
 import { z } from "zod";
-import { studentSchema } from "./schema";
+import { studentGuardianSchema, studentSchema } from "./schema";
 
 const app = new Hono()
   .get("/", async (c) => {
@@ -78,6 +78,35 @@ const app = new Hono()
     }
 
     return c.json(student);
+  })
+  .post("/guardian", zValidator("json", studentGuardianSchema), async (c) => {
+    const validatedData = c.req.valid("json");
+
+    const newGuardian = await db.transaction(async (tx) => {
+      const guardian = await tx
+        .insert(Guardian)
+        .values({
+          ...validatedData,
+        })
+        .returning();
+
+      if (guardian.length === 0) {
+        return c.json({ error: "Failed to create guardian" }, 400);
+      }
+
+      await tx.insert(StudentGuardian).values({
+        studentId: Number(validatedData.studentId),
+        guardianId: guardian[0].id,
+        isPrimary: validatedData.isPrimary,
+        relationship: validatedData.relationship,
+      });
+
+      console.log("successfully added guardian");
+
+      return guardian[0];
+    });
+
+    return c.json(newGuardian, 201);
   });
 
 export default app;

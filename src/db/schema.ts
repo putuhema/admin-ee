@@ -92,8 +92,8 @@ export const Guardian = pgTable(
   {
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
-    email: text("email").unique(),
-    phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
+    email: text("email"),
+    phoneNumber: varchar("phone_number", { length: 20 }).notNull().unique(),
     address: text("address"),
     occupation: varchar("occupation", { length: 255 }),
     isPrimary: boolean("is_primary").default(false),
