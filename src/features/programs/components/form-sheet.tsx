@@ -14,11 +14,11 @@ import { useSheetStore } from "@/lib/store";
 import { useGetProgram } from "../hooks/get";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { programSchema, Program } from "../schema";
 import { Textarea } from "@/components/ui/textarea";
 import { usePutProgram } from "../hooks/put";
 import { Loader2 } from "lucide-react";
 import CustomSheet from "@/components/custom-sheet";
+import { Program, programSchema } from "../schema";
 
 export const SHEET_ID = "PROGRAM_FORM_SHEET";
 

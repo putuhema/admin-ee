@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import {
   Form,
   FormControl,
@@ -23,51 +25,100 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 
 import { useForm } from "react-hook-form";
-import { enrollmentSchema, EnrollmentType } from "@/features/enrollment/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import NameSearchInput from "@/components/name-search-input";
-import { useGetSubjects } from "@/features/subjects/hooks/use-get-subjects";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useGetProductCategory } from "@/features/products/hooks/use-get-product-category";
+import {
+  useGetProgramExtra,
+  useGetPrograms,
+} from "../../../../../features/programs/hooks/get";
+import { enrollmentSchema, EnrollmentType } from "@/features/enrollment/schema";
+import { useGetPackages } from "@/features/meeting-package/api/get-packages";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { MultiSelectCombobox } from "@/components/multi-combobox";
+import { useGetProducts } from "@/features/products/api/use-get-products";
 import { usePostEnrollment } from "@/features/enrollment/hooks/use-post-enrollment";
-import React from "react";
 
 export default function EnrollmentForm() {
-  const { data: subjects } = useGetSubjects();
-  const { data: productCategory } = useGetProductCategory();
+  const { data: programs } = useGetPrograms();
+  const { data: packages } = useGetPackages();
 
-  const mutatation = usePostEnrollment();
+  const mutation = usePostEnrollment();
 
   const form = useForm<EnrollmentType>({
     resolver: zodResolver(enrollmentSchema),
     defaultValues: {
       enrollmentDate: new Date(),
-      package: 4,
-      packageTaken: 1,
       studentId: "",
-      subjectId: "",
-      paymentType: "",
+      packages: "",
+      quantity: 1,
+      programId: "",
+      extras: [],
+      products: [],
       notes: "",
     },
   });
 
-  const paymentType = form.watch("paymentType");
-  const subject = form.watch("subjectId");
+  const programId = form.watch("programId");
+  const packageId = form.watch("packages");
+  const { data: programExtra } = useGetProgramExtra(Number(programId), true);
+  const { data: products } = useGetProducts();
+
+  const extras = React.useMemo(() => {
+    return (
+      programExtra &&
+      programExtra.map((extra) => ({
+        label: extra.type,
+        value: extra.id.toString(),
+      }))
+    );
+  }, [programExtra]);
+
+  const productsMemo = React.useMemo(() => {
+    return (
+      products &&
+      products.map((product) => ({
+        label: product.name,
+        value: product.id.toString(),
+      }))
+    );
+  }, [products]);
+
+  const handleRenderSelectedItem = (
+    values: string[],
+    options: { label: string; value: string }[],
+    items: number = 3
+  ): string => {
+    if (values.length === 0) return "";
+
+    if (values.length <= items) {
+      return options
+        .reduce<string[]>((accumulator, option) => {
+          if (values.includes(option.value)) {
+            accumulator.push(option.label);
+          }
+          return accumulator;
+        }, [])
+        .join(", ");
+    }
+
+    return `${values.length} selected`;
+  };
 
   const onSubmit = (data: EnrollmentType) => {
-    mutatation.mutate(data);
+    mutation.mutate(data);
   };
 
   React.useEffect(() => {
-    if (mutatation.isSuccess) {
+    if (mutation.isSuccess) {
       form.reset();
     }
-  }, [mutatation.isSuccess, form]);
+  }, [mutation.isSuccess, form]);
 
   return (
     <div>
@@ -81,7 +132,7 @@ export default function EnrollmentForm() {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               <FormField
                 control={form.control}
                 name="enrollmentDate"
@@ -125,29 +176,57 @@ export default function EnrollmentForm() {
                 )}
               />
               <NameSearchInput form={form} name="studentId" />
+              <FormField
+                control={form.control}
+                name="programId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Program</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {programs?.map((program) => (
+                          <SelectItem
+                            key={program.id}
+                            value={program.id.toString()}
+                            className="capitalize"
+                          >
+                            {program.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <FormField
                   control={form.control}
-                  name="subjectId"
+                  name="packages"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Program</FormLabel>
+                      <FormLabel>Packages</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a subject" />
+                            <SelectValue placeholder="Select Packages" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {subjects?.map((subject) => (
-                            <SelectItem
-                              key={subject.id}
-                              value={subject.id.toString()}
-                            >
-                              {subject.name}
+                          {packages?.map((p) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>
+                              {p.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -156,30 +235,27 @@ export default function EnrollmentForm() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
-                  name="paymentType"
+                  name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Jenis Pembayaran</FormLabel>
+                      <FormLabel>Quantity</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value.toString()}
                       >
                         <FormControl>
-                          <SelectTrigger disabled={!subject}>
-                            <SelectValue placeholder="Pilih Jenis Pembayaran" />
+                          <SelectTrigger disabled={!packageId}>
+                            <SelectValue placeholder="Select Quantity" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {productCategory?.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.name!}
-                            >
-                              {category.name}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -187,82 +263,110 @@ export default function EnrollmentForm() {
                   )}
                 />
               </div>
-              {paymentType === "Layanan Berlangganan" && (
-                <div className="grid grid-cols-2 gap-2">
+
+              <div>
+                <h3>Extra Items</h3>
+                <Separator />
+              </div>
+              {extras && (
+                <div>
                   <FormField
                     control={form.control}
-                    name="package"
+                    name="extras"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Paket</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange(Number(value))
-                          }
-                          defaultValue={field.value.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a subject" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="4">Paket 4</SelectItem>
-                            <SelectItem value="8">Paket 8</SelectItem>
-                            <SelectItem value="12">Paket 12</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Extra</FormLabel>
+                        <FormControl>
+                          <MultiSelectCombobox
+                            label="Program Extra"
+                            options={extras!}
+                            value={field.value}
+                            onChange={field.onChange}
+                            renderItem={(option) => (
+                              <div
+                                role="option"
+                                aria-selected={field.value.includes(
+                                  option.value
+                                )}
+                              >
+                                {option.label}
+                              </div>
+                            )}
+                            renderSelectedItem={() =>
+                              handleRenderSelectedItem(field.value, extras!, 4)
+                            }
+                            aria-label="Filter by task type"
+                            aria-required="false"
+                            aria-multiselectable="true"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={form.control}
-                    name="packageTaken"
+                    name="products"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ambil Paket</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange(Number(value))
-                          }
-                          defaultValue={field.value.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a subject" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">Paket 1</SelectItem>
-                            <SelectItem value="2">Paket 2</SelectItem>
-                            <SelectItem value="3">Paket 3</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Products</FormLabel>
+                        <FormControl>
+                          <MultiSelectCombobox
+                            label="Products"
+                            options={productsMemo!}
+                            value={field.value}
+                            onChange={field.onChange}
+                            renderItem={(option) => (
+                              <div
+                                role="option"
+                                aria-selected={field.value.includes(
+                                  option.value
+                                )}
+                              >
+                                {option.label}
+                              </div>
+                            )}
+                            renderSelectedItem={() =>
+                              handleRenderSelectedItem(
+                                field.value,
+                                productsMemo!
+                              )
+                            }
+                            aria-label="Filter by task type"
+                            aria-required="false"
+                            aria-multiselectable="true"
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               )}
+
               <FormField
                 control={form.control}
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Catatan untuk {paymentType}{" "}
-                      <span className="text-xs text-muted-foreground">
-                        (optional)
-                      </span>
+                      Notes <span className="text-xs">(optional)</span>
                     </FormLabel>
-                    <Textarea {...field} className="placeholder:text-sm" />
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button disabled={mutatation.isPending} type="submit">
-                Submit
+
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? (
+                  <Loader2 className="animate-spin mr-2 w-6 h-6" />
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </form>
           </Form>

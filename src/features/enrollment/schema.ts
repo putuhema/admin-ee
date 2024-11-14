@@ -2,11 +2,12 @@ import { z } from "zod";
 
 export const enrollmentSchema = z.object({
   studentId: z.string(),
-  subjectId: z.string(),
+  programId: z.string(),
+  quantity: z.coerce.number(),
   enrollmentDate: z.coerce.date(),
-  package: z.number(),
-  packageTaken: z.number(),
-  paymentType: z.string(),
+  extras: z.array(z.string()),
+  products: z.array(z.string()),
+  packages: z.string(),
   notes: z.string().optional(),
 });
 

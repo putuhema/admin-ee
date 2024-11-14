@@ -1,5 +1,15 @@
 import { db } from "@/db";
-import { Enrollment, Program, Student } from "@/db/schema";
+import {
+  Enrollment,
+  EnrollmentInsert,
+  Order,
+  OrderDetail,
+  OrderDetailInsert,
+  OrderInsert,
+  Payment,
+  Program,
+  Student,
+} from "@/db/schema";
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
@@ -13,7 +23,6 @@ const app = new Hono()
           id: Enrollment.id,
           enrollmentDate: Enrollment.enrollmentDate,
           status: Enrollment.status,
-          enrollmentFee: Enrollment.enrollmentFee,
         },
         student: {
           id: Student.id,
@@ -34,106 +43,98 @@ const app = new Hono()
     return c.json(enrollments);
   })
   .post("/", zValidator("json", enrollmentSchema), async (c) => {
-    /*     const validateData = c.req.valid("json");
+    const enrollment = c.req.valid("json");
 
-    return await db.transaction(async (tx) => {
+    const newEnrollment = await db.transaction(async (tx) => {
+      const student = await tx
+        .select({
+          id: Student.id,
+        })
+        .from(Student)
+        .where(eq(Student.id, Number(enrollment.studentId)))
+        .limit(1);
 
-      try {
-        const [program] = await tx
-          .select()
-          .from(Program)
-          .where(eq(Program.id, Number(validateData.programId)))
-          .limit(1);
+      if (student.length === 0) {
+        return c.json({ message: "Student not found" }, 404);
+      }
 
-        if (!program) {
-          return c.json({ message: "Program not found" }, 404);
-        }
+      const program = await tx
+        .select({
+          id: Program.id,
+          price: Program.pricePerMeeting,
+        })
+        .from(Program)
+        .where(eq(Program.id, Number(enrollment.programId)))
+        .limit(1);
 
-        const [programPricing] = await tx
-          .select()
-          .from(ProgramPricing)
-          .where(eq(ProgramPricing.programId, Program.id))
-          .limit(1);
+      const order = await tx
+        .insert(Order)
+        .values({
+          studentId: student[0].id,
+          orderDate: new Date(),
+          totalAmount: program[0].price,
+          status: "pending" as OrderInsert["status"],
+        })
+        .returning();
 
-        if (!ProgramPricing) {
-          return c.json({ message: "Program pricing not found" }, 404);
-        }
+      const defaultOrderDetails: OrderDetailInsert = {
+        orderId: order[0].id,
+        programId: program[0].id,
+        price: program[0].price,
+        packageId: Number(enrollment.packages),
+        quantity: enrollment.quantity,
+      };
 
-        type PaymentType =
-          | "Materi Pembelajaran"
-          | "Layanan Berlangganan"
-          | "Penghargaan"
-          | "Pakaian";
-
-        const feeMapping: Record<PaymentType, number | null> = {
-          "Materi Pembelajaran": ProgramPricing.bookFee,
-          "Layanan Berlangganan": ProgramPricing.monthlyFee,
-          Penghargaan: ProgramPricing.certificateFee,
-          Pakaian: 64000,
-        };
-
-        const enrollmentFee =
-          feeMapping[validateData.paymentType as PaymentType];
-
-        if (enrollmentFee === undefined) {
-          return c.json({ message: "Invalid payment type" }, 400);
-        }
-
-        const [existingEnrollment] = await tx
-          .select()
-          .from(Enrollment)
-          .where(
-            and(
-              eq(Enrollment.studentId, Number(validateData.studentId)),
-              eq(Enrollment.programId, Program.id)
-            )
-          )
-          .limit(1);
-
-        let enrollment;
-        if (!existingEnrollment) {
-          [enrollment] = await tx
-            .insert(Enrollment)
-            .values({
-              enrollmentFee,
-              enrollmentDate: validateData.enrollmentDate,
-              status: "active",
-              studentId: Number(validateData.studentId),
-              programId: Program.id,
-              programPricingId: ProgramPricing.id,
-
-            })
-            .returning();
-        } else {
-          enrollment = existingEnrollment;
-        }
-
-        const [monthlyPackage] = await tx
-          .select()
-          .from(MonthlyPackage)
-          .where(eq(MonthlyPackage.enrollmentId, enrollment.id))
-          .limit(1);
-
-        await tx.insert(EnrollmentItem).values({
-
-          enrollmentId: enrollment.id,
-          itemType: validateData.paymentType,
-          ProgramPricingId: ProgramPricing.id,
-          MonthlyPackageId: monthlyPackage.id,
-        });
-
-        return c.json(enrollment, 201);
-      } catch (error) {
-        console.error(error);
-        return c.json(
-          {
-            message: "Failed to process enrollment",
-          },
-          500
+      const orderDetailsValues: OrderDetailInsert[] = [];
+      if (enrollment.extras.length > 0) {
+        orderDetailsValues.push(
+          ...enrollment.extras.map((extraId) => ({
+            ...defaultOrderDetails,
+            extraId: Number(extraId),
+          }))
         );
       }
-    }); */
-    return c.json({ message: "Not implemented" }, 501);
+
+      if (enrollment.products.length > 0) {
+        orderDetailsValues.push(
+          ...enrollment.products.map((productId) => ({
+            ...defaultOrderDetails,
+            productId: Number(productId),
+          }))
+        );
+      }
+
+      if (orderDetailsValues.length > 0) {
+        await tx.insert(OrderDetail).values(orderDetailsValues);
+      }
+
+      await tx.insert(Payment).values({
+        purpose: "enrollment",
+        orderId: order[0].id,
+        paymentDate: new Date(),
+        amount: order[0].totalAmount,
+        status: "pending",
+      });
+
+      const newEnrollment = await tx
+        .insert(Enrollment)
+        .values({
+          studentId: student[0].id,
+          programId: program[0].id,
+          orderId: order[0].id,
+          meetingPackageId: Number(enrollment.packages),
+          quantity: enrollment.quantity,
+          enrollmentDate: enrollment.enrollmentDate,
+          meeting_qty: enrollment.quantity,
+          status: "active",
+          notes: enrollment.notes,
+        } as EnrollmentInsert)
+        .returning();
+
+      return newEnrollment[0];
+    });
+
+    return c.json(newEnrollment, 201);
   });
 
 export default app;

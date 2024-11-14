@@ -161,9 +161,9 @@ export const ProgramExtra = pgTable(
   {
     id: serial("id").primaryKey(),
     programId: integer("program_id").references(() => Program.id),
-    type: varchar("type", { length: 255 }),
+    type: varchar("type", { length: 255 }).notNull(),
     description: text("description"),
-    price: integer("price"),
+    price: integer("price").notNull(),
     isActive: boolean("is_active").default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -208,14 +208,16 @@ export const Enrollment = pgTable(
     id: serial("id").primaryKey(),
     studentId: integer("student_id").references(() => Student.id),
     programId: integer("program_id").references(() => Program.id),
+    orderId: integer("order_id").references(() => Order.id),
     currentLevelId: integer("current_level_id").references(
       () => ProgramLevel.id
     ),
     meetingPackageId: integer("meeting_package_id").references(
       () => MeetingPackage.id
     ),
+    meeting_qty: integer("meeting_qty"),
     enrollmentDate: timestamp("enrollment_date", { withTimezone: true }),
-    status: EnrollmentStatus("status"),
+    status: EnrollmentStatus("status").default("active"),
     notes: text("notes"),
   },
   (t) => [
@@ -226,12 +228,14 @@ export const Enrollment = pgTable(
   ]
 );
 
+export type EnrollmentInsert = typeof Enrollment.$inferInsert;
+
 export const MeetingPackage = pgTable(
   "meeting_package",
   {
     id: serial("id").primaryKey(),
-    name: varchar("name", { length: 50 }),
-    count: integer("count"),
+    name: varchar("name", { length: 50 }).notNull(),
+    count: integer("count").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
@@ -239,20 +243,22 @@ export const MeetingPackage = pgTable(
 );
 
 export const ProductStatus = pgEnum("product_status", ["active", "inactive"]);
+
 export const Product = pgTable(
   "product",
   {
     id: serial("id").primaryKey(),
-    name: varchar("name", { length: 255 }),
+    name: varchar("name", { length: 255 }).notNull(),
     type: varchar("type", { length: 255 }),
     price: integer("price"),
     stockQuantity: integer("stock_quantity"),
     status: ProductStatus("status"),
-    programId: integer("program_id").references(() => Program.id),
     description: text("description"),
   },
   (t) => [index("product_name_idx").on(t.name)]
 );
+
+export type ProductInsert = typeof Product.$inferInsert;
 
 export const OrderStatus = pgEnum("order_status", [
   "pending",
@@ -271,6 +277,8 @@ export const Order = pgTable("order", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+export type OrderInsert = typeof Order.$inferInsert;
+
 export const OrderDetail = pgTable("order_detail", {
   id: serial("id").primaryKey(),
   orderId: integer("order_id").references(() => Order.id),
@@ -283,6 +291,8 @@ export const OrderDetail = pgTable("order_detail", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
+
+export type OrderDetailInsert = typeof OrderDetail.$inferInsert;
 
 export const Payment = pgTable("payment", {
   id: serial("id").primaryKey(),
@@ -428,13 +438,18 @@ export const enrollementRelations = relations(Enrollment, ({ one }) => ({
     fields: [Enrollment.meetingPackageId],
     references: [MeetingPackage.id],
   }),
+  order: one(Order, {
+    fields: [Enrollment.orderId],
+    references: [Order.id],
+  }),
 }));
 
-export const OrderRelations = relations(Order, ({ one }) => ({
+export const OrderRelations = relations(Order, ({ one, many }) => ({
   student: one(Student, {
     fields: [Order.studentId],
     references: [Student.id],
   }),
+  details: many(OrderDetail),
 }));
 
 export const OrderDetailRelations = relations(OrderDetail, ({ one }) => ({

@@ -1,8 +1,8 @@
 "use client";
 
 import { DataTable } from "@/components/data-table";
-import { columns } from "@/features/enrollment/data-table/column";
 import { useGetEnrollement } from "../hooks/use-get-enrollment";
+import { columns } from "./column";
 
 export default function Table() {
   const { data: enrollments } = useGetEnrollement();

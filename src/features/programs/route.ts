@@ -71,6 +71,7 @@ const app = new Hono()
       const { programId } = c.req.valid("param");
       const programExtra = await db
         .select({
+          id: ProgramExtra.id,
           programId: ProgramExtra.programId,
           type: ProgramExtra.type,
           price: ProgramExtra.price,
