@@ -3,10 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 
 const $get = client["api"]["programs"]["$get"];
-export type ResponseType = InferResponseType<typeof $get>;
+export type ResponseType = InferResponseType<typeof $get, 200>;
 
 export async function getPrograms() {
   const res = await $get();
+  if (!res.ok) {
+    throw new Error("Programs not found");
+  }
+
   return res.json();
 }
 

@@ -1,40 +1,108 @@
 import { db } from "@/db";
-import { Program, ProgramExtra } from "@/db/schema";
+import { Program, ProgramExtra, ProgramLevel } from "@/db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { asc, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { extraFeeSchema, programSchema } from "./schema";
+import { extraFeeSchema, programSchema, ProgramResponseSchema } from "./schema";
 
 const app = new Hono()
   .get("/", async (c) => {
-    const programs = await db
-      .select({
-        id: Program.id,
-        name: Program.name,
-        description: Program.description,
-        pricePerMeeting: Program.pricePerMeeting,
-        extra: sql`json_agg(
+    try {
+      const programExtras = db
+        .select({
+          programId: ProgramExtra.programId,
+          extras: sql<string>`json_agg(
             json_build_object('type', ${ProgramExtra.type}, 'price', ${ProgramExtra.price})
-          )`,
-      })
-      .from(Program)
-      .leftJoin(ProgramExtra, eq(Program.id, ProgramExtra.programId))
-      .groupBy(Program.id)
-      .orderBy(asc(Program.name));
+          )`.as("extras"),
+        })
+        .from(ProgramExtra)
+        .groupBy(ProgramExtra.programId)
+        .as("program_extras");
 
-    const parsePrograms = programs.map((program) => {
-      const extraArray = Array.isArray(program.extra)
-        ? program.extra
-        : JSON.parse(program.extra as string);
-      return {
-        ...program,
-        extra: extraArray,
-      };
-    });
+      const programLevels = db
+        .select({
+          programId: ProgramLevel.programId,
+          levels: sql<string>`json_agg(
+            json_build_object('id', ${ProgramLevel.id}, 'level', ${ProgramLevel.name})
+          )`.as("levels"),
+        })
+        .from(ProgramLevel)
+        .groupBy(ProgramLevel.programId)
+        .as("program_levels");
 
-    return c.json(parsePrograms, 200);
+      // Main query with proper joins
+      const rawPrograms = await db
+        .select({
+          id: Program.id,
+          name: Program.name,
+          description: Program.description,
+          pricePerMeeting: Program.pricePerMeeting,
+          extra: programExtras.extras,
+          levels: programLevels.levels,
+        })
+        .from(Program)
+        .leftJoin(programExtras, eq(Program.id, programExtras.programId))
+        .leftJoin(programLevels, eq(Program.id, programLevels.programId))
+        .orderBy(asc(Program.name));
+
+      const programs = rawPrograms.map((program) => {
+        const extraArray = Array.isArray(program.extra)
+          ? program.extra
+          : JSON.parse(program.extra || "[]");
+        const levelsArray = Array.isArray(program.levels)
+          ? program.levels
+          : JSON.parse(program.levels || "[]");
+
+        return {
+          ...program,
+          extra: extraArray.filter(Boolean),
+          levels: levelsArray.filter(Boolean),
+        };
+      });
+
+      const validatedPrograms = ProgramResponseSchema.array().parse(programs);
+
+      return c.json(validatedPrograms, 200);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return c.json(
+          { error: "Invalid data structure", details: error.errors },
+          400
+        );
+      }
+
+      console.error("Server error:", error);
+      return c.json({ error: "Internal server error" }, 500);
+    }
   })
+  .get(
+    "/levels/:programId",
+    zValidator(
+      "param",
+      z.object({
+        programId: z.coerce.number(),
+      })
+    ),
+    async (c) => {
+      try {
+        const { programId } = c.req.valid("param");
+        const programLevels = await db
+          .select({
+            id: ProgramLevel.id,
+            level: ProgramLevel.name,
+          })
+          .from(ProgramLevel)
+          .where(eq(ProgramLevel.programId, programId));
+
+        return c.json(programLevels, 200);
+      } catch (error) {
+        console.error("Server error:", error);
+        return c.json({ error: "Internal server error" }, 500);
+      }
+    }
+  )
+
   .get(
     "/:programId",
     zValidator(

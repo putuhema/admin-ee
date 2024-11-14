@@ -182,7 +182,7 @@ export const ProgramLevel = pgTable("program_level", {
   programId: integer("program_id")
     .notNull()
     .references(() => Program.id),
-  name: varchar("name", { length: 255 }),
+  name: varchar("name", { length: 255 }).notNull(),
   price: integer("price"),
   description: text("description"),
   isActive: boolean("is_active").default(true),
@@ -195,6 +195,7 @@ export const ProgramLevel = pgTable("program_level", {
 });
 
 export type ProgramLevelType = typeof ProgramLevel.$inferSelect;
+export type ProgramLevelInsert = typeof ProgramLevel.$inferInsert;
 
 export const EnrollmentStatus = pgEnum("enrollment_status", [
   "active",
@@ -271,7 +272,7 @@ export const Order = pgTable("order", {
   studentId: integer("student_id").references(() => Student.id),
   status: OrderStatus("status"),
   orderDate: timestamp("order_date", { withTimezone: true }),
-  totalAmount: integer("total_amount"),
+  totalAmount: integer("total_amount").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),

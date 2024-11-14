@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { type EnrollementType } from "../hooks/use-get-enrollment";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 export const columns: ColumnDef<EnrollementType[number]>[] = [
   {
@@ -24,29 +25,23 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     },
   },
   {
-    header: "Enrollment Date",
-    cell: ({ row }) => {
-      const enrollmentDate = row.original.enrollment.enrollmentDate;
-      return <span>{format(new Date(enrollmentDate!), "PPP")}</span>;
-    },
-  },
-  {
     header: "Packages (Qty)",
     cell: ({ row }) => {
       const packages = row.original.packages!;
       return (
-        <span>
+        <p className="text-center">
           {packages.name} ({row.original.enrollment.qty})
-        </span>
+        </p>
       );
     },
   },
   {
-    header: "Program",
+    id: "program",
+    header: () => <div className="text-center">Header</div>,
     cell: ({ row }) => {
       const { name, level } = row.original.program!;
       return (
-        <span>
+        <span className="capitalize">
           {name} - {level}
         </span>
       );
@@ -59,9 +54,23 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     },
   },
   {
+    header: "Fee",
+    cell: ({ row }) => {
+      return <span>{formatCurrency(row.original.orders?.amount ?? 0)}</span>;
+    },
+  },
+  {
     header: "Payment Status",
     cell: ({ row }) => {
-      return <span>{row.original.orders?.status}</span>;
+      return <span className="uppercase">{row.original.orders?.status}</span>;
+    },
+  },
+
+  {
+    header: "Enrollment Date",
+    cell: ({ row }) => {
+      const enrollmentDate = row.original.enrollment.enrollmentDate;
+      return <span>{format(new Date(enrollmentDate!), "PPP")}</span>;
     },
   },
   {

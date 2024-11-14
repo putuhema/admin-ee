@@ -39,6 +39,7 @@ const app = new Hono()
         orders: {
           id: Order.id,
           status: Order.status,
+          amount: Order.totalAmount,
         },
         packages: {
           id: MeetingPackage.id,
@@ -139,6 +140,7 @@ const app = new Hono()
           studentId: student[0].id,
           programId: program[0].id,
           orderId: order[0].id,
+          currentLevelId: enrollment.levels,
           meetingPackageId: Number(enrollment.packages),
           quantity: enrollment.quantity,
           enrollmentDate: enrollment.enrollmentDate,

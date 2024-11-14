@@ -1,5 +1,5 @@
 import { packageOptions } from "@/features/meeting-package/api/get-packages";
-import { getPrograms } from "../../../../../features/programs/hooks/get";
+import { getPrograms } from "@/features/programs/hooks/get";
 import EnrollmentForm from "./form";
 import {
   dehydrate,

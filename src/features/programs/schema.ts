@@ -32,3 +32,22 @@ export const ProgramExtraResponse = z.object({
   type: z.string(),
   price: z.string(),
 });
+
+const ProgramExtraSchema = z.object({
+  type: z.string(),
+  price: z.coerce.number(),
+});
+
+const ProgramLevelSchema = z.object({
+  id: z.number(),
+  level: z.string(),
+});
+
+export const ProgramResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  description: z.string(),
+  pricePerMeeting: z.number(),
+  extra: z.array(ProgramExtraSchema),
+  levels: z.array(ProgramLevelSchema),
+});

@@ -11,7 +11,8 @@
     "db:studio": "drizzle-kit studio",
     "seed:programs": "tsx src/db/seed/programs.ts",
     "seed:packages": "tsx src/db/seed/meeting-package.ts",
-    "seed:products": "tsx src/db/seed/products.ts"
+    "seed:products": "tsx src/db/seed/products.ts",
+    "seed:levels": "tsx src/db/seed/programs-level.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.1",

@@ -5,6 +5,7 @@ export const enrollmentSchema = z.object({
   programId: z.string(),
   quantity: z.coerce.number(),
   enrollmentDate: z.coerce.date(),
+  levels: z.number(),
   extras: z.array(z.string()),
   products: z.array(z.string()),
   packages: z.string(),

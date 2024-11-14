@@ -34,13 +34,24 @@ export const columns: ColumnDef<ResponseType[number]>[] = [
     },
   },
   {
+    id: "level",
+    header: () => <div className="text-center">Available Level</div>,
+    cell: ({ row }) => {
+      const price = row.getValue("pricePerMeeting") as number;
+
+      return (
+        <p className={cn("text-center")}>
+          {price > 0 ? formatCurrency(Number(price)) : "-"}
+        </p>
+      );
+    },
+  },
+  {
     accessorKey: "description",
     header: () => <div className="text-center">Description</div>,
     cell: ({ row }) => {
       return (
-        <p className="truncate max-w-[200] lg:text-wrap md:max-w-[400px] mx-auto">
-          {row.getValue("description")}
-        </p>
+        <p className="md:text-wrap w-[100px] ">{row.getValue("description")}</p>
       );
     },
   },

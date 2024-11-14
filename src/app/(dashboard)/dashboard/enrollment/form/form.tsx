@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import {
   useGetProgramExtra,
   useGetPrograms,
-} from "../../../../../features/programs/hooks/get";
+} from "@/features/programs/hooks/get";
 import { enrollmentSchema, EnrollmentType } from "@/features/enrollment/schema";
 import { useGetPackages } from "@/features/meeting-package/api/get-packages";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,6 +43,8 @@ import { Separator } from "@/components/ui/separator";
 import { MultiSelectCombobox } from "@/components/multi-combobox";
 import { useGetProducts } from "@/features/products/api/use-get-products";
 import { usePostEnrollment } from "@/features/enrollment/hooks/use-post-enrollment";
+import { useGetProgramLevels } from "@/features/programs/hooks/use-get-program-levels";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EnrollmentForm() {
   const { data: programs } = useGetPrograms();
@@ -57,6 +59,7 @@ export default function EnrollmentForm() {
       studentId: "",
       packages: "",
       quantity: 1,
+      levels: 1,
       programId: "",
       extras: [],
       products: [],
@@ -68,6 +71,10 @@ export default function EnrollmentForm() {
   const packageId = form.watch("packages");
   const { data: programExtra } = useGetProgramExtra(Number(programId), true);
   const { data: products } = useGetProducts();
+  const { data: programLevels, isLoading: programLevelsLoading } =
+    useGetProgramLevels({
+      programId: Number(programId),
+    });
 
   const extras = React.useMemo(() => {
     return (
@@ -176,37 +183,87 @@ export default function EnrollmentForm() {
                 )}
               />
               <NameSearchInput form={form} name="studentId" />
-              <FormField
-                control={form.control}
-                name="programId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Program</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a subject" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {programs?.map((program) => (
-                          <SelectItem
-                            key={program.id}
-                            value={program.id.toString()}
-                            className="capitalize"
-                          >
-                            {program.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="programId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Program</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a programs" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {programs?.map((program) => (
+                            <SelectItem
+                              key={program.id}
+                              value={program.id.toString()}
+                              className="capitalize"
+                            >
+                              {program.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {programLevelsLoading ? (
+                  <div className="space-y-2">
+                    <FormLabel>Levels</FormLabel>
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                ) : (
+                  <>
+                    {programLevels && (
+                      <FormField
+                        control={form.control}
+                        name="levels"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Levels</FormLabel>
+                            <Select
+                              onValueChange={(value) =>
+                                field.onChange(Number(value))
+                              }
+                              defaultValue={field.value.toString()}
+                            >
+                              <FormControl>
+                                <SelectTrigger
+                                  disabled={
+                                    !programLevels || programLevels.length === 0
+                                  }
+                                >
+                                  <SelectValue placeholder="Select a Levels" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {programLevels.map((lv) => (
+                                  <SelectItem
+                                    key={lv.id}
+                                    value={lv.id.toString()}
+                                    className="capitalize"
+                                  >
+                                    {lv.level}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </>
                 )}
-              />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <FormField
                   control={form.control}
