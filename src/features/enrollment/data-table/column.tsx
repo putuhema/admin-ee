@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 
-import { MoreHorizontal } from "lucide-react";
+import { CreditCard, Delete, LetterText, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,12 +24,6 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     },
   },
   {
-    header: "Subject",
-    cell: ({ row }) => {
-      return <span>{row.original.subject?.name}</span>;
-    },
-  },
-  {
     header: "Enrollment Date",
     cell: ({ row }) => {
       const enrollmentDate = row.original.enrollment.enrollmentDate;
@@ -37,15 +31,37 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     },
   },
   {
-    header: "Enrollment Fee",
+    header: "Packages (Qty)",
     cell: ({ row }) => {
-      return <span>{row.original.enrollment.enrollmentFee}</span>;
+      const packages = row.original.packages!;
+      return (
+        <span>
+          {packages.name} ({row.original.enrollment.qty})
+        </span>
+      );
+    },
+  },
+  {
+    header: "Program",
+    cell: ({ row }) => {
+      const { name, level } = row.original.program!;
+      return (
+        <span>
+          {name} - {level}
+        </span>
+      );
     },
   },
   {
     header: "Status",
     cell: ({ row }) => {
       return <span>{row.original.enrollment.status}</span>;
+    },
+  },
+  {
+    header: "Payment Status",
+    cell: ({ row }) => {
+      return <span>{row.original.orders?.status}</span>;
     },
   },
   {
@@ -62,9 +78,16 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View Student</DropdownMenuItem>
-            <DropdownMenuItem>Modify Student</DropdownMenuItem>
-            <DropdownMenuItem>Delete Student</DropdownMenuItem>
+            <DropdownMenuItem>
+              <LetterText /> Details
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <CreditCard /> Payment
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Delete />
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

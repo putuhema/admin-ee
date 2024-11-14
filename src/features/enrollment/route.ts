@@ -2,12 +2,14 @@ import { db } from "@/db";
 import {
   Enrollment,
   EnrollmentInsert,
+  MeetingPackage,
   Order,
   OrderDetail,
   OrderDetailInsert,
   OrderInsert,
   Payment,
   Program,
+  ProgramLevel,
   Student,
 } from "@/db/schema";
 import { Hono } from "hono";
@@ -23,21 +25,36 @@ const app = new Hono()
           id: Enrollment.id,
           enrollmentDate: Enrollment.enrollmentDate,
           status: Enrollment.status,
+          qty: Enrollment.meeting_qty,
         },
         student: {
           id: Student.id,
           name: Student.name,
-          nickname: Student.nickname,
-          dateOfBirth: Student.dateOfBirth,
         },
-        Program: {
+        program: {
           id: Program.id,
           name: Program.name,
+          level: ProgramLevel.name,
+        },
+        orders: {
+          id: Order.id,
+          status: Order.status,
+        },
+        packages: {
+          id: MeetingPackage.id,
+          name: MeetingPackage.name,
+          count: MeetingPackage.count,
         },
       })
       .from(Enrollment)
       .leftJoin(Student, eq(Enrollment.studentId, Student.id))
       .leftJoin(Program, eq(Enrollment.programId, Program.id))
+      .leftJoin(Order, eq(Enrollment.orderId, Order.id))
+      .leftJoin(
+        MeetingPackage,
+        eq(Enrollment.meetingPackageId, MeetingPackage.id)
+      )
+      .leftJoin(ProgramLevel, eq(Enrollment.currentLevelId, ProgramLevel.id))
       .orderBy(Student.name);
 
     return c.json(enrollments);
