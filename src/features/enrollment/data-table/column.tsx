@@ -16,10 +16,38 @@ import {
 import { type EnrollementType } from "../hooks/use-get-enrollment";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableColumnHeader } from "@/components/data-table-column-header";
 
 export const columns: ColumnDef<EnrollementType[number]>[] = [
   {
-    header: "Student Name",
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    id: "name",
+    accessorKey: "student.name",
+    header: ({ column }) => {
+      return <DataTableColumnHeader column={column} title="Name" />;
+    },
     cell: ({ row }) => {
       return <span>{row.original.student?.name}</span>;
     },
@@ -37,18 +65,21 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
   },
   {
     id: "program",
-    header: () => <div className="text-center">Header</div>,
+    header: () => <div className="text-center">Program (Level)</div>,
     cell: ({ row }) => {
       const { name, level } = row.original.program!;
       return (
         <span className="capitalize">
-          {name} - {level}
+          {name} ({level})
         </span>
       );
     },
   },
   {
-    header: "Status",
+    id: "enrollmentStatus",
+    header: ({ column }) => {
+      return <DataTableColumnHeader column={column} title="Status" />;
+    },
     cell: ({ row }) => {
       return <span>{row.original.enrollment.status}</span>;
     },
@@ -60,14 +91,22 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     },
   },
   {
-    header: "Payment Status",
+    id: "status",
+    accessorKey: "orders.status",
+    header: ({ column }) => {
+      return <DataTableColumnHeader column={column} title="Payment Status" />;
+    },
     cell: ({ row }) => {
       return <span className="uppercase">{row.original.orders?.status}</span>;
     },
   },
 
   {
-    header: "Enrollment Date",
+    id: "enrollmentDate",
+    accessorKey: "enrollment.enrollmentDate",
+    header: ({ column }) => {
+      return <DataTableColumnHeader column={column} title="Date" />;
+    },
     cell: ({ row }) => {
       const enrollmentDate = row.original.enrollment.enrollmentDate;
       return <span>{format(new Date(enrollmentDate!), "PPP")}</span>;

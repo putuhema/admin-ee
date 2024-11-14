@@ -14,7 +14,7 @@ export const getEnrollment = async () => {
 
 export const useGetEnrollement = () => {
   const query = useQuery<EnrollementType>({
-    queryKey: ["enrollements"],
+    queryKey: ["enrollments"],
     queryFn: getEnrollment,
   });
 
