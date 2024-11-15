@@ -8,8 +8,8 @@ export const studentSchema = z.object({
     .max(50, "Nickname is too long"),
   email: z.string().optional(),
   phoneNumber: z.string().max(20).optional(),
-  dateOfBirth: z.coerce.date().optional(),
-  address: z.string().optional(),
+  dateOfBirth: z.coerce.date(),
+  address: z.string(),
   additionalInfo: z.string().optional(),
   notes: z.string().optional(),
 });

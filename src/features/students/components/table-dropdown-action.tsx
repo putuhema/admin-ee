@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { Delete, Eye, MoreHorizontal, PenLine } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,10 +34,18 @@ export default function TableDropdownAction({ studentId }: Props) {
           onMouseEnter={prefetch}
           onFocus={prefetch}
         >
-          <DropdownMenuItem>View Student</DropdownMenuItem>
+          <DropdownMenuItem>
+            <Eye /> View
+          </DropdownMenuItem>
         </Link>
-        <DropdownMenuItem>Modify Student</DropdownMenuItem>
-        <DropdownMenuItem>Delete Student</DropdownMenuItem>
+        <DropdownMenuItem>
+          <PenLine />
+          Modify
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Delete />
+          Delete
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

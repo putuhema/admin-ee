@@ -1,6 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
 import { db } from "@/db";
-import { Guardian, Student, StudentGuardian } from "@/db/schema";
+import {
+  Enrollment,
+  Guardian,
+  MeetingPackage,
+  Program,
+  ProgramLevel,
+  Student,
+  StudentGuardian,
+} from "@/db/schema";
 import { Hono } from "hono";
 import { eq, ilike } from "drizzle-orm";
 import { z } from "zod";
@@ -32,7 +40,45 @@ const app = new Hono()
       return c.json(students);
     }
   )
+  .get(
+    "/enrollment/:studentId",
+    zValidator(
+      "param",
+      z.object({
+        studentId: z.coerce.number(),
+      })
+    ),
+    async (c) => {
+      const { studentId } = c.req.valid("param");
 
+      const enrollment = await db
+        .select({
+          id: Enrollment.id,
+          studentId: Enrollment.studentId,
+          program: Program.name,
+          packageName: MeetingPackage.name,
+          packageCount: MeetingPackage.count,
+          level: ProgramLevel.name,
+          meetingQty: Enrollment.meeting_qty,
+          status: Enrollment.status,
+          date: Enrollment.enrollmentDate,
+        })
+        .from(Enrollment)
+        .leftJoin(Program, eq(Enrollment.programId, Program.id))
+        .leftJoin(ProgramLevel, eq(Enrollment.currentLevelId, ProgramLevel.id))
+        .leftJoin(
+          MeetingPackage,
+          eq(Enrollment.meetingPackageId, MeetingPackage.id)
+        )
+        .where(eq(Enrollment.studentId, studentId));
+
+      if (enrollment.length === 0) {
+        return c.json({ error: "No enrollment found" }, 404);
+      }
+
+      return c.json(enrollment);
+    }
+  )
   .get(
     "/:studentId",
     zValidator(
@@ -44,8 +90,30 @@ const app = new Hono()
     async (c) => {
       const { studentId } = c.req.valid("param");
       const students = await db
-        .select()
+        .select({
+          id: Student.id,
+          name: Student.name,
+          nickname: Student.nickname,
+          email: Student.email,
+          phoneNumber: Student.phoneNumber,
+          dateOfBirth: Student.dateOfBirth,
+          address: Student.address,
+          additionalInfo: Student.additionalInfo,
+          notes: Student.notes,
+          guardian: {
+            id: Guardian.id,
+            name: Guardian.name,
+            email: Guardian.email,
+            phoneNumber: Guardian.phoneNumber,
+            address: Guardian.address,
+            occupation: Guardian.occupation,
+            isPrimary: StudentGuardian.isPrimary,
+            relationship: StudentGuardian.relationship,
+          },
+        })
         .from(Student)
+        .leftJoin(StudentGuardian, eq(StudentGuardian.studentId, Student.id))
+        .leftJoin(Guardian, eq(StudentGuardian.guardianId, Guardian.id))
         .where(eq(Student.id, parseInt(studentId)))
         .limit(1);
 
@@ -70,7 +138,11 @@ const app = new Hono()
     }
     const [student] = await db
       .insert(Student)
-      .values(validatedData)
+      .values({
+        ...validatedData,
+        dateOfBirth: new Date(validatedData.dateOfBirth),
+        address: validatedData.address,
+      })
       .returning();
 
     if (!student) {

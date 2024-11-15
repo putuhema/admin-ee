@@ -34,20 +34,6 @@ const data = {
       title: "Programs",
       url: "/dashboard/programs",
       icon: Bot,
-      items: [
-        {
-          title: "Pricing",
-          url: "/dashboard/programs/pricing",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
     },
     {
       title: "Enrollment",

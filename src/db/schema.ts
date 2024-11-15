@@ -64,12 +64,12 @@ export const Student = pgTable(
   "student",
   {
     id: serial("id").primaryKey(),
-    name: varchar("name", { length: 255 }),
-    nickname: text("nickname"),
+    name: varchar("name", { length: 255 }).notNull(),
+    nickname: text("nickname").notNull(),
     email: text("email").unique(),
     phoneNumber: varchar("phone_number", { length: 20 }),
-    dateOfBirth: timestamp("date_of_birth", { withTimezone: true }),
-    address: text("address"),
+    dateOfBirth: timestamp("date_of_birth", { withTimezone: true }).notNull(),
+    address: text("address").notNull(),
     isActive: boolean("is_active").default(true),
     notes: text("notes"),
     additionalInfo: text("additional_info"),
@@ -84,7 +84,7 @@ export const Student = pgTable(
   (t) => [
     uniqueIndex("unique_student_idx").on(t.name, t.email),
     index("student_name_idx").on(t.name),
-  ]
+  ],
 );
 
 export const Guardian = pgTable(
@@ -110,7 +110,7 @@ export const Guardian = pgTable(
     uniqueIndex("unique_guardian_idx")
       .on(t.id)
       .where(sql`is_primary = true`),
-  ]
+  ],
 );
 
 export const StudentGuardian = pgTable(
@@ -134,7 +134,7 @@ export const StudentGuardian = pgTable(
   },
   (t) => [
     uniqueIndex("unique_student_guardian_idx").on(t.studentId, t.guardianId),
-  ]
+  ],
 );
 
 export type StudentType = typeof Student.$inferSelect;
@@ -153,7 +153,7 @@ export const Program = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("program_name_idx").on(t.name)]
+  (t) => [index("program_name_idx").on(t.name)],
 );
 
 export const ProgramExtra = pgTable(
@@ -174,7 +174,7 @@ export const ProgramExtra = pgTable(
   },
   (t) => [
     uniqueIndex("program_extra_program_id_type_idx").on(t.programId, t.type),
-  ]
+  ],
 );
 
 export const ProgramLevel = pgTable("program_level", {
@@ -211,12 +211,12 @@ export const Enrollment = pgTable(
     programId: integer("program_id").references(() => Program.id),
     orderId: integer("order_id").references(() => Order.id),
     currentLevelId: integer("current_level_id").references(
-      () => ProgramLevel.id
+      () => ProgramLevel.id,
     ),
     meetingPackageId: integer("meeting_package_id").references(
-      () => MeetingPackage.id
+      () => MeetingPackage.id,
     ),
-    meeting_qty: integer("meeting_qty"),
+    meeting_qty: integer("meeting_qty").notNull(),
     enrollmentDate: timestamp("enrollment_date", { withTimezone: true }),
     status: EnrollmentStatus("status").default("active"),
     notes: text("notes"),
@@ -226,7 +226,7 @@ export const Enrollment = pgTable(
     index("program_idx").on(t.programId),
     index("current_level_idx").on(t.currentLevelId),
     index("package_idx").on(t.meetingPackageId),
-  ]
+  ],
 );
 
 export type EnrollmentInsert = typeof Enrollment.$inferInsert;
@@ -240,7 +240,7 @@ export const MeetingPackage = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
-  (t) => [index("meeteng_package_name_idx").on(t.name)]
+  (t) => [index("meeteng_package_name_idx").on(t.name)],
 );
 
 export const ProductStatus = pgEnum("product_status", ["active", "inactive"]);
@@ -256,7 +256,7 @@ export const Product = pgTable(
     status: ProductStatus("status"),
     description: text("description"),
   },
-  (t) => [index("product_name_idx").on(t.name)]
+  (t) => [index("product_name_idx").on(t.name)],
 );
 
 export type ProductInsert = typeof Product.$inferInsert;
@@ -392,7 +392,7 @@ export const studentGuardianRelations = relations(
       fields: [StudentGuardian.guardianId],
       references: [Guardian.id],
     }),
-  })
+  }),
 );
 
 export const programRelations = relations(Program, ({ many }) => ({
@@ -412,7 +412,7 @@ export const programLevelRelations = relations(
     }),
     enrollments: many(Enrollment),
     bookPreparations: many(BookPreparationStatus),
-  })
+  }),
 );
 
 export const programExtraRelations = relations(ProgramExtra, ({ one }) => ({
@@ -521,5 +521,5 @@ export const bookPreparationStatusRelations = relations(
       fields: [BookPreparationStatus.levelId],
       references: [ProgramLevel.id],
     }),
-  })
+  }),
 );
