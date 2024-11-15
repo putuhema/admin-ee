@@ -35,12 +35,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { usePostMeeting } from "@/features/meeting/api/post-meeting";
 import MeetingDisplay from "./meeting";
-import { useMeetingIDStore } from "@/features/meeting/store";
+import { Separator } from "@/components/ui/separator";
 
 export default function MeetingForm() {
-  const { getMeetingID } = useMeetingIDStore();
-  const meetingId = getMeetingID();
-
   const form = useForm<MeetingType>({
     resolver: zodResolver(meetingSchema),
     defaultValues: {
@@ -52,10 +49,16 @@ export default function MeetingForm() {
     },
   });
 
-  const [session, setSession] = React.useState("FIRST");
+  const [session, setSession] = React.useState("");
   const [date, setDate] = React.useState(new Date());
   const { data: programs, isLoading } = useGetPrograms();
   const { data: studentsData, isLoading: isStudentsLoading } = useGetStudents();
+
+  React.useEffect(() => {
+    if (programs) {
+      form.setValue("programId", programs[0].id);
+    }
+  }, [programs, form]);
 
   const SESSIONS = React.useMemo(() => {
     if (!date) return {};
@@ -162,36 +165,38 @@ export default function MeetingForm() {
               </FormItem>
             )}
           />
-          <div className="flex items-end gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[240px] pl-3 text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(date) => setDate(date!)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <p className="text-sm">Pick A Date</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(date) => setDate(date!)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="space-y-2">
-              <p>Session</p>
+              <p className="text-sm">Session</p>
               <Select
-                defaultValue={session}
                 onValueChange={(value) => {
                   setSession(value);
                   const sessionValue = value as keyof typeof SESSIONS;
@@ -199,6 +204,7 @@ export default function MeetingForm() {
                   form.setValue("startTime", SESSIONS[sessionValue].startTime);
                   form.setValue("endTime", SESSIONS[sessionValue].endTime);
                 }}
+                defaultValue={session}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Session" />
@@ -252,6 +258,7 @@ export default function MeetingForm() {
           </Button>
         </form>
       </Form>
+      <Separator className="my-8" />
       <div className="space-y-4">
         <MeetingDisplay />
       </div>

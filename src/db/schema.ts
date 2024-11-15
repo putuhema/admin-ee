@@ -318,10 +318,14 @@ export const MeetingType = pgEnum("meeting_type", ["scheduled", "walk-in"]);
 
 export const Meeting = pgTable("meeting", {
   id: serial("id").primaryKey(),
-  studentId: integer("student_id").references(() => Student.id),
-  programId: integer("program_id").references(() => Program.id),
-  startTime: timestamp("start_time", { withTimezone: true }),
-  endTime: timestamp("end_time", { withTimezone: true }),
+  studentId: integer("student_id")
+    .references(() => Student.id)
+    .notNull(),
+  programId: integer("program_id")
+    .references(() => Program.id)
+    .notNull(),
+  startTime: timestamp("start_time", { withTimezone: true }).notNull(),
+  endTime: timestamp("end_time", { withTimezone: true }).notNull(),
   location: varchar("location", { length: 255 }),
   type: MeetingType("type").default("scheduled"),
   status: MeetingStatus("status"),

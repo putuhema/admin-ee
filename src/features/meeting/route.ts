@@ -58,6 +58,25 @@ const app = new Hono()
       }
     }
   )
+  .get(
+    "/:meetingId",
+    zValidator("param", z.object({ meetingId: z.coerce.number() })),
+    async (c) => {
+      const { meetingId } = c.req.valid("param");
+
+      const meeting = await db
+        .select()
+        .from(Meeting)
+        .where(eq(Meeting.id, meetingId))
+        .limit(1);
+
+      if (meeting.length === 0) {
+        return c.json({ error: "Meeting not found" }, 404);
+      }
+
+      return c.json(meeting[0]);
+    }
+  )
   .post("/", zValidator("json", meetingSchema), async (c) => {
     const validatedMeeting = c.req.valid("json");
 

@@ -4,10 +4,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useClickAway } from "@uidotdev/usehooks";
-import { MeetingResponse } from "@/features/meeting/api/get-meeting";
+import { MeetingResponse } from "@/features/meeting/api/get-meetings";
 import { useDeleteMeeting } from "@/features/meeting/api/delete-meeting";
-import { Loader2, Pen, Trash2 } from "lucide-react";
-import { useMeetingIDStore } from "@/features/meeting/store";
+import { Loader2, Trash2 } from "lucide-react";
 
 type Props = {
   meetingId: number;
@@ -16,7 +15,6 @@ type Props = {
 };
 
 export default function MeetingItem({ meetingId, m, index }: Props) {
-  const { setMeetingID } = useMeetingIDStore();
   const [showEditButton, setShowEditButton] = React.useState(false);
   const ref = useClickAway<HTMLDivElement>(() => {
     setShowEditButton(false);
@@ -43,14 +41,6 @@ export default function MeetingItem({ meetingId, m, index }: Props) {
         <div>{format(new Date(m.endTime), "hh:mm a")}</div>
         {showEditButton && meetingId === m.id && (
           <div className="flex  items-center ml-2">
-            <Button
-              onClick={() => setMeetingID(m.id)}
-              className={cn(index % 2 === 0 && "hover:bg-blue-100")}
-              size="icon"
-              variant="ghost"
-            >
-              <Pen />
-            </Button>
             <Button
               disabled={mutation.isPending && meetingId === m.id}
               size="icon"
