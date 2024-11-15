@@ -1,5 +1,5 @@
 import { packageOptions } from "@/features/meeting-package/api/get-packages";
-import { getPrograms } from "@/features/programs/hooks/get";
+import { programQueryOptions } from "@/features/programs/hooks/get";
 import EnrollmentForm from "./form";
 import {
   dehydrate,
@@ -12,10 +12,7 @@ export default async function EnrollmentPage() {
   const queryClient = new QueryClient();
 
   await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: ["programs"],
-      queryFn: getPrograms,
-    }),
+    queryClient.prefetchQuery(programQueryOptions),
     queryClient.prefetchQuery(packageOptions),
     queryClient.prefetchQuery(productsQueryOptions),
   ]);

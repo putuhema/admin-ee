@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   BookOpen,
   Bot,
+  CalendarFold,
   Command,
   FileUser,
   HandCoins,
@@ -39,6 +40,11 @@ const data = {
       title: "Enrollment",
       url: "/dashboard/enrollment",
       icon: FileUser,
+    },
+    {
+      title: "Meeting",
+      url: "/dashboard/meeting",
+      icon: CalendarFold,
     },
     {
       title: "Teachers",

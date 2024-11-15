@@ -390,7 +390,7 @@ export default function EnrollmentForm() {
                                 productsMemo!
                               )
                             }
-                            aria-label="Filter by task type"
+                            aria-label="Filter by products"
                             aria-required="false"
                             aria-multiselectable="true"
                           />

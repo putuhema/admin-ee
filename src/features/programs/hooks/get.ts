@@ -1,5 +1,5 @@
 import { client } from "@/lib/rpc";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 
 const $get = client["api"]["programs"]["$get"];
@@ -13,12 +13,13 @@ export async function getPrograms() {
 
   return res.json();
 }
+export const programQueryOptions: UseQueryOptions<ResponseType> = {
+  queryKey: ["programs"],
+  queryFn: getPrograms,
+};
 
 export function useGetPrograms() {
-  const query = useQuery<ResponseType, Error>({
-    queryKey: ["programs"],
-    queryFn: getPrograms,
-  });
+  const query = useQuery<ResponseType, Error>(programQueryOptions);
 
   return query;
 }

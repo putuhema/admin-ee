@@ -3,18 +3,22 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import { programQueryOptions } from "@/features/programs/hooks/get";
-import Table from "@/features/programs/data-table/table";
 
-export default async function SubjectPage() {
+import MeetingForm from "./form";
+import { programQueryOptions } from "@/features/programs/hooks/get";
+import { studentQueryOptions } from "@/features/students/hooks/use-get-students";
+
+export default async function MeetingPage() {
   const queryClient = new QueryClient();
 
-  queryClient.prefetchQuery(programQueryOptions);
-
+  await Promise.all([
+    queryClient.prefetchQuery(programQueryOptions),
+    queryClient.prefetchQuery(studentQueryOptions),
+  ]);
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <main>
-        <Table />
+        <MeetingForm />
       </main>
     </HydrationBoundary>
   );
