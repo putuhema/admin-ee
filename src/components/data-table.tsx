@@ -25,19 +25,23 @@ import {
 } from "@/components/ui/table";
 import { Button } from "./ui/button";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { usePathname } from "next/navigation";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
+const dissallowedPath = ["/dashboard/meeting"];
+
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const pathname = usePathname();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
 
   const [columnVisibility, setColumnVisibility] =
@@ -65,7 +69,9 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-2">
-      <DataTableToolbar table={table} />
+      {!dissallowedPath.includes(pathname) && (
+        <DataTableToolbar table={table} />
+      )}
 
       <div className="rounded-md border">
         <Table>
@@ -79,7 +85,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -98,7 +104,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -118,10 +124,6 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"

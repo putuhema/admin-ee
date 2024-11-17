@@ -45,6 +45,12 @@ const data = {
       title: "Meeting",
       url: "/dashboard/meeting",
       icon: CalendarFold,
+      items: [
+        {
+          title: "Schedule",
+          url: "/dashboard/meeting/schedule",
+        },
+      ],
     },
     {
       title: "Teachers",

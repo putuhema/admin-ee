@@ -1,28 +1,24 @@
 import { client } from "@/lib/rpc";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 
-export type MeetingResponse = InferResponseType<
-  typeof client.api.meetings.$get,
-  200
->;
+const $get = client.api.meetings.$get;
+export type MeetingsResponse = InferResponseType<typeof $get, 200>;
 
-export function useGetMeetings(date: Date) {
-  const query = useQuery<MeetingResponse, Error>({
-    queryKey: ["meetings"],
-    queryFn: async () => {
-      const res = await client.api.meetings.$get({
-        query: {
-          date: new Date(date).toISOString(),
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to get Meetings");
-      }
+export const meetingQueryOptions: UseQueryOptions<MeetingsResponse> = {
+  queryKey: ["meetings"],
+  queryFn: async () => {
+    const res = await $get();
 
-      return await res.json();
-    },
-  });
+    if (!res.ok) {
+      throw new Error("Failed to get Meetings");
+    }
 
+    return await res.json();
+  },
+};
+
+export function useGetMeetings() {
+  const query = useQuery<MeetingsResponse, Error>(meetingQueryOptions);
   return query;
 }

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useClickAway } from "@uidotdev/usehooks";
-import { MeetingResponse } from "@/features/meeting/api/get-meetings";
+import { MeetingResponse } from "@/features/meeting/api/get-schedule";
 import { useDeleteMeeting } from "@/features/meeting/api/delete-meeting";
 import { Loader2, Trash2 } from "lucide-react";
 

@@ -7,7 +7,7 @@ const $post = client.api.meetings.$post;
 type Response = InferResponseType<typeof $post>;
 type Request = InferRequestType<typeof $post>["json"];
 
-export function usePostMeeting() {
+export function usePostSchedule() {
   const queryClient = useQueryClient();
   const mutation = useMutation<Response, Error, Request>({
     mutationFn: async (data) => {
@@ -19,8 +19,8 @@ export function usePostMeeting() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meetings"] });
-      toast.success("Successfully add meeting");
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
+      toast.success("Add new Schedule");
     },
   });
 

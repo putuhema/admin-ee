@@ -10,18 +10,30 @@ export const meetingSchema = z.object({
 
 export type MeetingType = z.infer<typeof meetingSchema>;
 
-const meetingType = z.object({
+export const MeetingResponse = z.object({
   id: z.number(),
   studentId: z.number(),
   studentName: z.string(),
+  programName: z.string(),
   type: z.string(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
 });
 
+export type MeetingResponseType = z.infer<typeof MeetingResponse>;
+
 export const MeetingsResponse = z.array(
   z.object({
     programName: z.string(),
-    meetings: z.array(meetingType),
-  })
+    meetings: z.array(MeetingResponse),
+  }),
+);
+
+export type GroupingMeeting = z.infer<typeof MeetingsResponse>;
+
+export const MeetingsSchema = z.array(
+  z.object({
+    meetingDate: z.string(),
+    count: z.string(),
+  }),
 );

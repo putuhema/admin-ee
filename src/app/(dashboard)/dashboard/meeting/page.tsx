@@ -4,21 +4,18 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
-import MeetingForm from "./form";
-import { programQueryOptions } from "@/features/programs/hooks/get";
-import { studentQueryOptions } from "@/features/students/hooks/use-get-students";
+import { meetingQueryOptions } from "@/features/meeting/api/get-meetings";
+import Table from "@/features/meeting/data-table/table";
 
 export default async function MeetingPage() {
   const queryClient = new QueryClient();
 
-  await Promise.all([
-    queryClient.prefetchQuery(programQueryOptions),
-    queryClient.prefetchQuery(studentQueryOptions),
-  ]);
+  queryClient.prefetchQuery(meetingQueryOptions);
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <main>
-        <MeetingForm />
+        <Table />
       </main>
     </HydrationBoundary>
   );
