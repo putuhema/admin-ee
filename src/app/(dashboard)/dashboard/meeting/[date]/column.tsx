@@ -5,7 +5,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import DropdownAction from "@/features/meeting/components/dropdown-action";
 import { MeetingDateResponse } from "@/features/meeting/api/get-meeting-by-date";
 import { format } from "date-fns";
-import { Check } from "lucide-react";
+import { Check, CircleCheck, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import SessionButton from "./_components/session-button";
 
 export const columns: ColumnDef<MeetingDateResponse[0]>[] = [
   {
@@ -50,9 +52,13 @@ export const columns: ColumnDef<MeetingDateResponse[0]>[] = [
     cell: ({ row }) => {
       const programs = row.original.programs;
       return (
-        <div>
+        <div className="flex flex-col">
           {programs.map((p) => (
-            <div key={p.programId}>{p.meetings.length} session</div>
+            <SessionButton
+              key={p.programId}
+              meetings={p.meetings}
+              sessionNumber={p.meetings.length}
+            />
           ))}
         </div>
       );
@@ -60,17 +66,45 @@ export const columns: ColumnDef<MeetingDateResponse[0]>[] = [
   },
   {
     id: "attendance",
-    header: "Attendance",
-    cell: () => (
-      <div>
-        <Check />
-      </div>
-    ),
+    header: () => <div className="text-center">Attendance</div>,
+    cell: ({ row }) => {
+      const programs = row.original.programs;
+      return (
+        <div className="flex flex-col">
+          {programs.map((p) => (
+            <div key={p.programId} className="flex flex-col items-center">
+              {p.meetings.map((m) => (
+                <div key={m.id}>
+                  {m.attendance ? (
+                    <CircleCheck className="text-green-400" />
+                  ) : (
+                    <XCircle className="text-red-400" />
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    },
   },
   {
     id: "teacher",
-    header: "Teacher",
-    cell: () => <div>putu mahendra</div>,
+    header: "Tutor By",
+    cell: ({ row }) => {
+      const programs = row.original.programs;
+      return (
+        <div className="flex flex-col">
+          {programs.map((p) => (
+            <div key={p.programId}>
+              {p.meetings.map((m) => (
+                <div key={m.id}>{m.tutorName ? `Mr. ${m.tutorName}` : "-"}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    },
   },
   {
     id: "actions",

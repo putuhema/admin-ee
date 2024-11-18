@@ -1,13 +1,22 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import {
+  AttendanceSchema,
   MeetingResponseType,
   meetingSchema,
   MeetingsResponse,
   MeetingsSchema,
 } from "./schema";
 import { db } from "@/db";
-import { Meeting, MeetingInsert, Program, Student } from "@/db/schema";
+import {
+  Meeting,
+  MeetingInsert,
+  MeetingSession,
+  MeetingSessionInsert,
+  Program,
+  Student,
+  user,
+} from "@/db/schema";
 
 import { z } from "zod";
 import { asc, between, eq, sql } from "drizzle-orm";
@@ -152,10 +161,15 @@ const app = new Hono()
           location: Meeting.location,
           status: Meeting.status,
           type: Meeting.type,
+          attendance: MeetingSession.studentAttendance,
+          tutorId: MeetingSession.tutorId,
+          tutorName: user.name,
         })
         .from(Meeting)
         .leftJoin(Student, eq(Student.id, Meeting.studentId))
         .leftJoin(Program, eq(Program.id, Meeting.programId))
+        .leftJoin(MeetingSession, eq(MeetingSession.meetingId, Meeting.id))
+        .leftJoin(user, eq(user.id, MeetingSession.tutorId))
         .where(eq(sql`DATE(${Meeting.startTime})`, sql`DATE(${date})`))
         .orderBy(asc(Meeting.startTime));
 
@@ -182,6 +196,9 @@ const app = new Hono()
           }
 
           acc[studentKey].programs[programKey].meetings.push({
+            tutorId: meeting.tutorId!,
+            tutorName: meeting.tutorName!,
+            attendance: meeting.attendance ?? false,
             id: meeting.id,
             startTime: meeting.startTime,
             endTime: meeting.endTime,
@@ -203,6 +220,9 @@ const app = new Hono()
                 programId: number;
                 programName: string;
                 meetings: Array<{
+                  tutorId: string;
+                  tutorName: string;
+                  attendance: boolean;
                   id: number;
                   startTime: Date;
                   endTime: Date;
@@ -216,7 +236,6 @@ const app = new Hono()
         >,
       );
 
-      // Transform the nested objects into arrays
       const formattedMeetings = Object.values(groupedMeetings).map(
         (student) => ({
           ...student,
@@ -266,6 +285,34 @@ const app = new Hono()
     const [meeting] = await db.insert(Meeting).values(meetings).returning();
 
     return c.json(meeting, 201);
+  })
+  .post("/session", zValidator("json", AttendanceSchema), async (c) => {
+    const validatedSession = c.req.valid("json");
+
+    const values: MeetingSessionInsert = {
+      tutorId: validatedSession.teacherId,
+      studentAttendance: true,
+      status: "completed",
+      chekcInTime: validatedSession.checkInTime,
+      checkOutTime: validatedSession.checkOutTime,
+      duration: validatedSession.duration,
+    };
+
+    const valuesWithMeetinId = validatedSession.meetingId.map((meetingId) => ({
+      ...values,
+      meetingId,
+    }));
+
+    const meetingSessions = await db
+      .insert(MeetingSession)
+      .values(valuesWithMeetinId)
+      .onConflictDoUpdate({
+        target: [MeetingSession.meetingId],
+        set: values,
+      })
+      .returning();
+
+    return c.json(meetingSessions, 201);
   })
   .delete(
     "/",

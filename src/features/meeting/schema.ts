@@ -37,3 +37,13 @@ export const MeetingsSchema = z.array(
     count: z.string(),
   }),
 );
+
+export const AttendanceSchema = z.object({
+  teacherId: z.string(),
+  meetingId: z.array(z.number()),
+  checkInTime: z.coerce.date(),
+  checkOutTime: z.coerce.date(),
+  duration: z.number(),
+});
+
+export type AttendaceType = z.infer<typeof AttendanceSchema>;

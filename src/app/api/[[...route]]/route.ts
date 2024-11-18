@@ -7,6 +7,7 @@ import enrollments from "@/features/enrollment/route";
 import packages from "@/features/meeting-package/route";
 import products from "@/features/products/route";
 import meetings from "@/features/meeting/route";
+import teachers from "@/features/teachers/route";
 
 const app = new Hono().basePath("/api");
 
@@ -17,7 +18,8 @@ const routes = app
   .route("/programs", programs)
   .route("/packages", packages)
   .route("/products", products)
-  .route("/meetings", meetings);
+  .route("/meetings", meetings)
+  .route("/teachers", teachers);
 
 export const GET = handle(app);
 export const POST = handle(app);
