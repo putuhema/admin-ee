@@ -30,6 +30,7 @@ import { usePathname } from "next/navigation";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  name?: string | undefined;
 }
 
 const dissallowedPath = ["/dashboard/meeting"];
@@ -37,6 +38,7 @@ const dissallowedPath = ["/dashboard/meeting"];
 export function DataTable<TData, TValue>({
   columns,
   data,
+  name,
 }: DataTableProps<TData, TValue>) {
   const pathname = usePathname();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -70,7 +72,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-2">
       {!dissallowedPath.includes(pathname) && (
-        <DataTableToolbar table={table} />
+        <DataTableToolbar table={table} name={name} />
       )}
 
       <div className="rounded-md border">

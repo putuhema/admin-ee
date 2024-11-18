@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  name?: string | undefined;
 }
 
 export const statuses = [
@@ -34,6 +35,7 @@ export const statuses = [
 
 export function DataTableToolbar<TData>({
   table,
+  name,
 }: DataTableToolbarProps<TData>) {
   const pathname = usePathname();
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -43,9 +45,11 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Filter name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn(name ?? "name")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn(name ?? "name")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />

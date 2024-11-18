@@ -33,7 +33,7 @@ export const columns: ColumnDef<MeetingsResponse[0]>[] = [
     accessorKey: "count",
     header: () => <div className="text-center">Scheduled</div>,
     cell: ({ row }) => {
-      return <p className="text-center">{row.getValue("count")} students</p>;
+      return <p className="text-center">{row.getValue("count")} meetings</p>;
     },
   },
   {

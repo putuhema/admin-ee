@@ -131,6 +131,103 @@ const app = new Hono()
     },
   )
   .get(
+    "/date/:date",
+    zValidator("param", z.object({ date: z.string() })),
+    async (c) => {
+      const { date } = c.req.valid("param");
+
+      if (!date) {
+        return c.json({ error: "Date is required" }, 400);
+      }
+
+      const meetings = await db
+        .select({
+          id: Meeting.id,
+          studentId: Meeting.studentId,
+          programId: Meeting.programId,
+          studentName: Student.name,
+          programName: Program.name,
+          startTime: Meeting.startTime,
+          endTime: Meeting.endTime,
+          location: Meeting.location,
+          status: Meeting.status,
+          type: Meeting.type,
+        })
+        .from(Meeting)
+        .leftJoin(Student, eq(Student.id, Meeting.studentId))
+        .leftJoin(Program, eq(Program.id, Meeting.programId))
+        .where(eq(sql`DATE(${Meeting.startTime})`, sql`DATE(${date})`))
+        .orderBy(asc(Meeting.startTime));
+
+      // Group by student and then by program
+      const groupedMeetings = meetings.reduce(
+        (acc, meeting) => {
+          const studentKey = meeting.studentName!;
+
+          if (!acc[studentKey]) {
+            acc[studentKey] = {
+              studentId: meeting.studentId,
+              studentName: meeting.studentName!,
+              programs: {},
+            };
+          }
+
+          const programKey = meeting.programName!;
+          if (!acc[studentKey].programs[programKey]) {
+            acc[studentKey].programs[programKey] = {
+              programId: meeting.programId,
+              programName: meeting.programName!,
+              meetings: [],
+            };
+          }
+
+          acc[studentKey].programs[programKey].meetings.push({
+            id: meeting.id,
+            startTime: meeting.startTime,
+            endTime: meeting.endTime,
+            location: meeting.location!,
+            status: meeting.status!,
+            type: meeting.type!,
+          });
+
+          return acc;
+        },
+        {} as Record<
+          string,
+          {
+            studentId: number;
+            studentName: string;
+            programs: Record<
+              string,
+              {
+                programId: number;
+                programName: string;
+                meetings: Array<{
+                  id: number;
+                  startTime: Date;
+                  endTime: Date;
+                  location: string;
+                  status: string;
+                  type: string;
+                }>;
+              }
+            >;
+          }
+        >,
+      );
+
+      // Transform the nested objects into arrays
+      const formattedMeetings = Object.values(groupedMeetings).map(
+        (student) => ({
+          ...student,
+          programs: Object.values(student.programs),
+        }),
+      );
+
+      return c.json(formattedMeetings);
+    },
+  )
+  .get(
     "/:meetingId",
     zValidator("param", z.object({ meetingId: z.coerce.number() })),
     async (c) => {
