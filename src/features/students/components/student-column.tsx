@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Hash, Loader2 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import type { Student } from "../queries/use-get-students";
+import type { Student } from "../types";
 import StudentTableAction from "./student-table-action";
 
 export const studentColumns: ColumnDef<Student>[] = [
@@ -39,6 +39,16 @@ export const studentColumns: ColumnDef<Student>[] = [
     cell: ({ row }) => (
       <div className="min-w-[100px]" role="cell">
         {row.original.nickname}
+      </div>
+    ),
+    minSize: 100,
+  },
+  {
+    header: "Address",
+    accessorKey: "address",
+    cell: ({ row }) => (
+      <div className="min-w-[100px]" role="cell">
+        {row.original.address}
       </div>
     ),
     minSize: 100,

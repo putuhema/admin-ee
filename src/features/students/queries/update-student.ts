@@ -1,17 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { InferRequestType, InferResponseType } from "hono";
+import { InferRequestType } from "hono";
 
 import { client } from "@/lib/rpc";
 import { toast } from "sonner";
-import { StudentsResponseData } from "./use-post-students";
 import { useStudentFiltersStore } from "../store";
 import { studentKeys } from "./keys";
+import { Student } from "../types";
 
 const $patch = client.api.students[":studentId"]["$patch"];
 type RequestType = InferRequestType<typeof $patch>["json"];
-type StudentResponseData = InferResponseType<typeof $patch, 200> & {
-  optimisticStatus?: "creating" | "updating" | "deleting";
-};
 
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient();
@@ -38,25 +35,25 @@ export const useUpdateStudent = () => {
         queryKey: studentKeys.lists(limit, offset, appliedFilters),
       });
 
-      const previousStudents = queryClient.getQueryData<StudentsResponseData[]>(
-        ["students"],
+      const previousStudents = queryClient.getQueryData<Student[]>(
+        studentKeys.lists(limit, offset, appliedFilters),
       );
-      const previousStudent = queryClient.getQueryData<StudentResponseData>([
-        "student",
-        id,
-      ]);
 
       if (previousStudents) {
         queryClient.setQueryData(
           studentKeys.lists(limit, offset, appliedFilters),
           (old: any) => ({
             ...old,
-            students: old.tasks.map((s: StudentsResponseData) =>
+            students: old.students.map((s: Student) =>
               s.id === id ? { ...s, ...data, optimisticStatus: "updating" } : s,
             ),
           }),
         );
       }
+
+      const previousStudent = queryClient.getQueryData<Student>(
+        studentKeys.detail(id),
+      );
 
       if (previousStudent) {
         queryClient.setQueryData(studentKeys.detail(id), (old: any) => {
@@ -82,7 +79,6 @@ export const useUpdateStudent = () => {
     },
     onSettled: (_, __, { id }) => {
       queryClient.invalidateQueries({ queryKey: studentKeys.detail(id) });
-
       queryClient.invalidateQueries({
         queryKey: studentKeys.lists(limit, offset, appliedFilters),
       });

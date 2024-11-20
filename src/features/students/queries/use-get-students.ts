@@ -2,17 +2,12 @@ import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 import { StudentFilters } from "@/features/students/types";
-import { z } from "zod";
-import { studentSchema } from "@/db/schema";
 import { studentKeys } from "./keys";
 
 export type StudentResponse = InferResponseType<
   typeof client.api.students.$get,
   200
 >;
-export type Student = z.infer<typeof studentSchema> & {
-  optimisticStatus?: "creating" | "updating" | "deleting";
-};
 
 export const useGetStudents = (
   limit?: number,

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Student } from "../queries/use-get-students";
+import type { Student } from "../types";
 import { TableInstance } from "./student-table-wrapper";
 
 import {

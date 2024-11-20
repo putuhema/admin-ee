@@ -1,18 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { InferRequestType, InferResponseType } from "hono";
+import { InferRequestType } from "hono";
 
 import { client } from "@/lib/rpc";
 import { toast } from "sonner";
 import { studentKeys } from "./keys";
 import { useStudentFiltersStore } from "../store";
+import { Student } from "../types";
 
 type RequestType = InferRequestType<typeof client.api.students.$post>["json"];
-export type StudentsResponseData = InferResponseType<
-  typeof client.api.students.$post,
-  200
-> & {
-  optimisticStatus?: "creating" | "updating" | "deleting";
-};
 
 export const usePostStudents = () => {
   const queryClient = useQueryClient();
@@ -33,8 +28,8 @@ export const usePostStudents = () => {
       await queryClient.cancelQueries({
         queryKey: studentKeys.lists(limit, offset, appliedFilters),
       });
-      const previousStudents = queryClient.getQueryData<StudentsResponseData[]>(
-        ["students"],
+      const previousStudents = queryClient.getQueryData<Student[]>(
+        studentKeys.lists(limit, offset, appliedFilters),
       );
 
       queryClient.setQueryData(

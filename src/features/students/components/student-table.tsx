@@ -20,12 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { cn } from "@/lib/utils";
 import { DEFAULT_PAGE_SIZE } from "@/constants";
-import { Student } from "../queries/use-get-students";
+import { Student } from "../types";
 
 interface TaskTableProps {
   table: TableType<Student>;
   isLoading: boolean;
-  onSelectStudent: (task: Student) => void;
+  onSelectStudent: (student: Student) => void;
 }
 
 export const StudentTable: React.FC<TaskTableProps> = ({

@@ -13,11 +13,9 @@ import {
 
 import { DEFAULT_PAGE_SIZE } from "@/constants";
 import { useStudentFiltersStore } from "@/features/students/store";
-import {
-  Student,
-  useGetStudents,
-} from "@/features/students/queries/use-get-students";
+import { useGetStudents } from "@/features/students/queries/use-get-students";
 import { studentColumns as columns } from "./student-column";
+import { Student } from "../types";
 
 interface TableInstanceProps {
   children: (

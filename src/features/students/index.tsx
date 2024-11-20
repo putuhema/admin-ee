@@ -5,11 +5,11 @@ import { useIsClient } from "@uidotdev/usehooks";
 
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { Student } from "./queries/use-get-students";
+import type { Student } from "./types";
 import { StudentTableContainer } from "./components/student-table-container";
 
 const COLUMN_CONFIGS = {
-  all: ["select", "name", "nickname", "dateOfBirth", "actions"],
+  all: ["select", "name", "nickname", "dateOfBirth", "address", "actions"],
   sideView: ["select", "name", "nickname", "actions"],
 } as const;
 

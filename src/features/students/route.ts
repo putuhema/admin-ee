@@ -23,7 +23,7 @@ const app = new Hono()
         limit: z.coerce.number().optional().default(10),
         offset: z.coerce.number().optional().default(0),
         search: z.string().optional(),
-        sort: z.enum(["name"]).optional(),
+        sort: z.enum(["name", "nickname", "dateOfBirth"]).optional(),
         order: z.enum(["asc", "desc"]).optional().default("desc"),
       }),
     ),
