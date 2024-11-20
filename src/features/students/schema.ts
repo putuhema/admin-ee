@@ -14,6 +14,8 @@ export const studentSchema = z.object({
   notes: z.string().optional(),
 });
 
+export type StudentFormData = z.infer<typeof studentSchema>;
+
 export const studentGuardianSchema = z.object({
   studentId: z.string(),
   name: z.string().min(1, { message: "Name cannot be empty" }).max(100),

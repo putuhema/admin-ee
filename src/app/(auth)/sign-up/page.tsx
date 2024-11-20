@@ -100,9 +100,9 @@ export default function SignUp() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="putuhema" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormDescription>
                       This is your public display name.

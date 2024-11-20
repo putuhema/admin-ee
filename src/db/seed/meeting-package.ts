@@ -2,7 +2,7 @@ import "../../../drizzle/envConfig";
 import { db } from "../index";
 import { MeetingPackage } from "../schema";
 
-async function seedSubjects() {
+export async function seedMeetingPackage() {
   try {
     const programs = [
       {
@@ -28,5 +28,3 @@ async function seedSubjects() {
     process.exit(1);
   }
 }
-
-seedSubjects();

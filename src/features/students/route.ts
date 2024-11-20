@@ -10,13 +10,17 @@ import {
   StudentGuardian,
 } from "@/db/schema";
 import { Hono } from "hono";
-import { eq, ilike } from "drizzle-orm";
+import { and, asc, eq, ilike } from "drizzle-orm";
 import { z } from "zod";
 import { studentGuardianSchema, studentSchema } from "./schema";
 
 const app = new Hono()
   .get("/", async (c) => {
-    const students = await db.select().from(Student);
+    const students = await db
+      .select()
+      .from(Student)
+      .where(eq(Student.isDeleted, false))
+      .orderBy(asc(Student.name));
     return c.json(students);
   })
   .get(
@@ -25,7 +29,7 @@ const app = new Hono()
       "query",
       z.object({
         name: z.string().optional(),
-      })
+      }),
     ),
     async (c) => {
       const { name } = c.req.valid("query");
@@ -38,7 +42,7 @@ const app = new Hono()
       const students = await query;
 
       return c.json(students);
-    }
+    },
   )
   .get(
     "/enrollment/:studentId",
@@ -46,7 +50,7 @@ const app = new Hono()
       "param",
       z.object({
         studentId: z.coerce.number(),
-      })
+      }),
     ),
     async (c) => {
       const { studentId } = c.req.valid("param");
@@ -68,16 +72,16 @@ const app = new Hono()
         .leftJoin(ProgramLevel, eq(Enrollment.currentLevelId, ProgramLevel.id))
         .leftJoin(
           MeetingPackage,
-          eq(Enrollment.meetingPackageId, MeetingPackage.id)
+          eq(Enrollment.meetingPackageId, MeetingPackage.id),
         )
-        .where(eq(Enrollment.studentId, studentId));
+        .where(and(eq(Enrollment.studentId, studentId)));
 
       if (enrollment.length === 0) {
         return c.json({ error: "No enrollment found" }, 404);
       }
 
       return c.json(enrollment);
-    }
+    },
   )
   .get(
     "/:studentId",
@@ -85,7 +89,7 @@ const app = new Hono()
       "param",
       z.object({
         studentId: z.string().regex(/^\d+$/, "Student ID must be a number"),
-      })
+      }),
     ),
     async (c) => {
       const { studentId } = c.req.valid("param");
@@ -114,7 +118,9 @@ const app = new Hono()
         .from(Student)
         .leftJoin(StudentGuardian, eq(StudentGuardian.studentId, Student.id))
         .leftJoin(Guardian, eq(StudentGuardian.guardianId, Guardian.id))
-        .where(eq(Student.id, parseInt(studentId)))
+        .where(
+          and(eq(Student.id, Number(studentId)), eq(Student.isDeleted, false)),
+        )
         .limit(1);
 
       if (!students.length) {
@@ -122,7 +128,7 @@ const app = new Hono()
       }
 
       return c.json(students[0]);
-    }
+    },
   )
   .post("/", zValidator("json", studentSchema), async (c) => {
     const validatedData = c.req.valid("json");
@@ -151,6 +157,59 @@ const app = new Hono()
 
     return c.json(student);
   })
+  .patch("/:studentId", zValidator("json", studentSchema), async (c) => {
+    try {
+      const studentId = c.req.param("studentId");
+      const studentData = c.req.valid("json");
+
+      console.log({ studentId, studentData });
+
+      const [student] = await db
+        .update(Student)
+        .set(studentData)
+        .where(eq(Student.id, Number(studentId)))
+        .returning();
+
+      if (!student) {
+        return c.json({ error: "Failed to update student" }, 400);
+      }
+
+      return c.json(student, 200);
+    } catch (error) {
+      console.error("Failed to update student :", error);
+      return c.json({ error: "Internal Server Error" }, 500);
+    }
+  })
+  .delete(
+    "/:studentId",
+    zValidator(
+      "param",
+      z.object({
+        studentId: z.string().regex(/^\d+$/, "Student ID must be a number"),
+      }),
+    ),
+    async (c) => {
+      try {
+        const studentId = Number(c.req.valid("param").studentId);
+        console.log({ studentId });
+
+        const [student] = await db
+          .update(Student)
+          .set({ isDeleted: true, deletedAt: new Date() })
+          .where(eq(Student.id, studentId))
+          .returning();
+
+        if (!student) {
+          return c.json({ error: "Failed to delete student" }, 400);
+        }
+
+        return c.json(student, 200);
+      } catch (error) {
+        console.error("Failed to delete student :", error);
+        return c.json({ error: "Internal Server Error" }, 500);
+      }
+    },
+  )
   .post("/guardian", zValidator("json", studentGuardianSchema), async (c) => {
     const validatedData = c.req.valid("json");
 

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  BadgeCheck,
-  ChevronsUpDown,
-  LayoutDashboard,
-  LogOut,
-} from "lucide-react";
+import { BadgeCheck, LayoutDashboard, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {

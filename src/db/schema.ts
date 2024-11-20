@@ -66,13 +66,14 @@ export const Student = pgTable(
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     nickname: text("nickname").notNull(),
-    email: text("email").unique(),
+    email: text("email"),
     phoneNumber: varchar("phone_number", { length: 20 }),
     dateOfBirth: timestamp("date_of_birth", { withTimezone: true }).notNull(),
     address: text("address").notNull(),
     isActive: boolean("is_active").default(true),
     notes: text("notes"),
     additionalInfo: text("additional_info"),
+    isDeleted: boolean("is_deleted").default(false),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -82,7 +83,7 @@ export const Student = pgTable(
       .defaultNow(),
   },
   (t) => [
-    uniqueIndex("unique_student_idx").on(t.name, t.email),
+    uniqueIndex("unique_student_idx").on(t.name),
     index("student_name_idx").on(t.name),
   ],
 );
@@ -217,6 +218,7 @@ export const Enrollment = pgTable(
       () => MeetingPackage.id,
     ),
     meeting_qty: integer("meeting_qty").notNull(),
+    meetingLeft: integer("meeting_left").notNull(),
     enrollmentDate: timestamp("enrollment_date", { withTimezone: true }),
     status: EnrollmentStatus("status").default("active"),
     notes: text("notes"),
@@ -343,7 +345,7 @@ export const MeetingSession = pgTable("meeting_session", {
     .references(() => Meeting.id)
     .unique(),
   tutorId: text("tutor_id").references(() => user.id),
-  chekcInTime: timestamp("check_in_time", { withTimezone: true }),
+  checkInTime: timestamp("check_in_time", { withTimezone: true }),
   checkOutTime: timestamp("check_out_time", { withTimezone: true }),
   duration: integer("duration"),
   status: MeetingStatus("status"),

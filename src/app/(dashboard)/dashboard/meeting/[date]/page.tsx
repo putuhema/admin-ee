@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
-import Table from "./table";
+import Table from "@/features/meeting/components/[date]/meeting-table";
 
 export default function MeetingPage() {
   const { date } = useParams();

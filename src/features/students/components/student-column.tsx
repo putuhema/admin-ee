@@ -3,13 +3,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
-import { type StudentType } from "../hooks/use-get-students";
-import TableDropdownAction from "../components/table-dropdown-action";
+import { type StudentType } from "../queries/use-get-students";
+import StudentTableAction from "./student-table-action";
 
 export const columns: ColumnDef<StudentType[number]>[] = [
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Full Name",
   },
   {
     accessorKey: "nickname",
@@ -21,7 +21,7 @@ export const columns: ColumnDef<StudentType[number]>[] = [
     cell: ({ row }) => {
       const formmatedDAte = format(
         new Date(row.getValue("dateOfBirth")),
-        "PPP"
+        "PPP",
       );
 
       return <span>{formmatedDAte}</span>;
@@ -35,7 +35,7 @@ export const columns: ColumnDef<StudentType[number]>[] = [
     id: "actions",
     cell: ({ row }) => {
       const studentId = row.original.id;
-      return <TableDropdownAction studentId={studentId} />;
+      return <StudentTableAction studentId={studentId} />;
     },
   },
 ];

@@ -6,13 +6,13 @@ import html2canvas from "html2canvas";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import MeetingItem from "./meeting-item";
+import { ScheduleItem } from "./schedule-item";
 import { Download, LayoutGrid, Loader2, Rows } from "lucide-react";
 
 import { useSheetStore } from "@/lib/store";
-import { useGetSchedule } from "@/features/meeting/api/get-schedule";
+import { useGetSchedule } from "@/features/meeting/queries/get-schedule";
 
-export default function MeetingDisplay() {
+export function Schedules() {
   const { toggleSheet } = useSheetStore();
   const [mode, setMode] = React.useState<"row" | "grid">("row");
   const scheduleRef = React.useRef<HTMLDivElement>(null);
@@ -93,7 +93,7 @@ export default function MeetingDisplay() {
               </p>
               <div className="pl-4 space-y-1">
                 {meeting.meetings.map((m) => (
-                  <MeetingItem
+                  <ScheduleItem
                     meetingId={m.id}
                     key={m.id}
                     m={m}

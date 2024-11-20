@@ -1,8 +1,5 @@
 import * as React from "react";
 
-import { useGetStudentsWithQuery } from "@/features/students/hooks/use-get-student-query";
-import { useClickAway, useDebounce } from "@uidotdev/usehooks";
-
 import {
   FormControl,
   FormField,
@@ -14,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Minus, Search, X } from "lucide-react";
 import { type UseFormReturn, type FieldValues, Path } from "react-hook-form";
+
+import { useGetStudentsWithQuery } from "@/features/students/queries/use-get-student-query";
+import { useClickAway, useDebounce } from "@uidotdev/usehooks";
 
 type Props<T extends FieldValues> = {
   form: UseFormReturn<T>;

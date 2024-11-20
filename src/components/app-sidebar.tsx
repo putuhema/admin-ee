@@ -23,6 +23,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserType } from "@/db/schema";
+import Link from "next/link";
 
 const data = {
   navMain: [
@@ -90,7 +91,7 @@ export function AppSidebar({ user, ...props }: Props) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <Link href="/dashboard">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <Command className="size-4" />
                 </div>
@@ -98,7 +99,7 @@ export function AppSidebar({ user, ...props }: Props) {
                   <span className="truncate font-semibold">Admin EE</span>
                   <span className="truncate text-xs">Erlangga Education</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

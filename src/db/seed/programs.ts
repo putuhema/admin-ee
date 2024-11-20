@@ -2,7 +2,7 @@ import "../../../drizzle/envConfig";
 import { db } from "../index";
 import { Program } from "../schema";
 
-async function seedSubjects() {
+export async function seedPrograms() {
   try {
     const programs = [
       {
@@ -66,5 +66,3 @@ async function seedSubjects() {
     process.exit(1);
   }
 }
-
-seedSubjects();

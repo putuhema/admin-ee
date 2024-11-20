@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useClickAway } from "@uidotdev/usehooks";
-import { MeetingResponse } from "@/features/meeting/api/get-schedule";
-import { useDeleteMeeting } from "@/features/meeting/api/delete-meeting";
+import { MeetingResponse } from "@/features/meeting/queries/get-schedule";
+import { useDeleteMeeting } from "@/features/meeting/queries/delete-meeting";
 import { Loader2, Trash2 } from "lucide-react";
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
   index: number;
 };
 
-export default function MeetingItem({ meetingId, m, index }: Props) {
+export function ScheduleItem({ meetingId, m, index }: Props) {
   const [showEditButton, setShowEditButton] = React.useState(false);
   const ref = useClickAway<HTMLDivElement>(() => {
     setShowEditButton(false);

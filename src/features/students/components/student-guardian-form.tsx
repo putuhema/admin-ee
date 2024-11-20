@@ -29,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { studentGuardianSchema } from "@/features/students/schema";
 import NameSearchInput from "@/components/name-search-input";
 import { Switch } from "@/components/ui/switch";
-import { usePostGuardians } from "@/features/students/hooks/post-student-guardian";
+import { usePostGuardians } from "@/features/students/queries/post-student-guardian";
 
 const possibleRelationships = [
   "Parent",
@@ -45,7 +45,7 @@ const possibleRelationships = [
   "Sponsor",
 ];
 
-export default function GuardianForm() {
+export function StudentGuardianForm() {
   const mutation = usePostGuardians();
 
   const form = useForm<z.infer<typeof studentGuardianSchema>>({

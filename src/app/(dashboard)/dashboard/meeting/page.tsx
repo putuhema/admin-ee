@@ -4,8 +4,8 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
-import { meetingQueryOptions } from "@/features/meeting/api/get-meetings";
-import Table from "@/features/meeting/data-table/table";
+import { meetingQueryOptions } from "@/features/meeting/queries/get-meetings";
+import Table from "@/features/meeting/components/meeting-table";
 
 export default async function MeetingPage() {
   const queryClient = new QueryClient();

@@ -4,9 +4,9 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
-import DynamicSchedule from "./dynamic";
+import DynamicSchedule from "@/features/meeting/components/schedule/dynamic";
 import { programQueryOptions } from "@/features/programs/hooks/get";
-import { studentQueryOptions } from "@/features/students/hooks/use-get-students";
+import { studentQueryOptions } from "@/features/students/queries/use-get-students";
 
 export default async function SchedulePage() {
   const queryClient = new QueryClient();

@@ -35,12 +35,13 @@ export const MeetingsSchema = z.array(
   z.object({
     meetingDate: z.string(),
     count: z.string(),
+    attendance: z.string(),
   }),
 );
 
 export const AttendanceSchema = z.object({
   teacherId: z.string(),
-  meetingId: z.array(z.number()),
+  meetingId: z.number(),
   checkInTime: z.coerce.date(),
   checkOutTime: z.coerce.date(),
   duration: z.number(),

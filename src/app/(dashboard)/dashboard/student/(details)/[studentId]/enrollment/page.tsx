@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { useParams } from "next/navigation";
-import { useGetStudentEnrollment } from "@/features/students/hooks/get-student-enrollment";
+import { useGetStudentEnrollment } from "@/features/students/queries/get-student-enrollment";
 import { Loader2 } from "lucide-react";
 import StudentCalendar from "@/components/student-calendar";
 
@@ -9,7 +9,7 @@ export default function StudentEnrollmentPage() {
   const { studentId } = useParams();
 
   const { data: student, isLoading } = useGetStudentEnrollment(
-    Number(studentId?.toString())
+    Number(studentId?.toString()),
   );
 
   if (isLoading) {

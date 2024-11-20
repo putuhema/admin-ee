@@ -1,40 +1,30 @@
+"use client";
 import * as React from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 import { useSheetStore } from "@/lib/store";
 
 type Props = {
   SHEET_ID: string;
   title: string;
-  desc: string;
   children: React.ReactNode;
 };
 
-export default function CustomSheet({
-  SHEET_ID,
-  title,
-  desc,
-  children,
-}: Props) {
-  const { getSheet, toggleSheet } = useSheetStore();
+export default function CustomSheet({ SHEET_ID, title, children }: Props) {
+  const { sheets, toggleSheet } = useSheetStore();
   return (
     <Sheet
-      open={getSheet(SHEET_ID)?.isOpen}
+      open={sheets[SHEET_ID]?.isOpen}
       onOpenChange={(open) => {
         toggleSheet(SHEET_ID, open);
       }}
     >
-      <SheetContent>
-        <SheetHeader>
+      <SheetContent className="min-w-[100%] lg:min-w-[30%]">
+        <VisuallyHidden.Root>
           <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{desc}</SheetDescription>
-        </SheetHeader>
+        </VisuallyHidden.Root>
         {children}
       </SheetContent>
     </Sheet>

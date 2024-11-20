@@ -1,7 +1,7 @@
 "use client";
 import { DataTable } from "@/components/data-table";
-import { columns } from "./column";
-import { useGetMeetingByDate } from "@/features/meeting/api/get-meeting-by-date";
+import { columns } from "./meeting-column";
+import { useGetMeetingByDate } from "@/features/meeting/queries/get-meeting-by-date";
 import { useParams } from "next/navigation";
 
 export default function Table() {

@@ -26,6 +26,7 @@ import {
 import { Button } from "./ui/button";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -75,8 +76,8 @@ export function DataTable<TData, TValue>({
         <DataTableToolbar table={table} name={name} />
       )}
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border  w-[380px] overflow-x-auto boder-red-400 md:w-full">
+        <Table className="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -97,9 +98,10 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, index) => (
                 <TableRow
                   key={row.id}
+                  className={getRowClassName(row, index)}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -148,3 +150,20 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+
+const getRowClassName = (row: any, index: number) =>
+  cn(
+    "hover:bg-stone-100",
+    row.getIsSelected()
+      ? "bg-blue-100 hover:bg-blue-200"
+      : index % 2 === 0
+        ? "bg-gray-50"
+        : "bg-white",
+    row.original.optimisticStatus === "creating" ||
+      row.original.optimisticStatus === "updating"
+      ? "animate-pulse bg-green-100 hover:bg-green-100"
+      : "",
+    row.original.optimisticStatus === "deleting"
+      ? "animate-pulse bg-red-100 hover:bg-red-100"
+      : "",
+  );

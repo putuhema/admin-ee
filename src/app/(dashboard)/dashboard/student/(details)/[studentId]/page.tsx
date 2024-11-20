@@ -1,7 +1,7 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
-import { useGetStudent } from "@/features/students/hooks/use-get-student";
+import { useGetStudent } from "@/features/students/queries/use-get-student";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -10,9 +10,7 @@ import { useParams } from "next/navigation";
 export default function StudentId() {
   const { studentId } = useParams();
 
-  const { data: student, isLoading } = useGetStudent(
-    studentId?.toString() ?? "",
-  );
+  const { data: student, isLoading } = useGetStudent(Number(studentId ?? ""));
 
   if (isLoading) {
     return (

@@ -1,7 +1,7 @@
 "use client";
 import { DataTable } from "@/components/data-table";
-import { columns } from "@/features/students/data-table/column";
-import { useGetStudents } from "../hooks/use-get-students";
+import { columns } from "@/features/students/components/student-column";
+import { useGetStudents } from "@/features/students/queries/use-get-students";
 
 export default function Table() {
   const { data: students } = useGetStudents();

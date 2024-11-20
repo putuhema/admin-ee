@@ -2,7 +2,7 @@ import "../../../drizzle/envConfig";
 import { db } from "../index";
 import { ProgramLevel, ProgramLevelInsert } from "../schema";
 
-async function seedSubjects() {
+export async function seedProgramLevel() {
   try {
     const programLevels: ProgramLevelInsert[] = [
       {
@@ -496,5 +496,3 @@ async function seedSubjects() {
     process.exit(1);
   }
 }
-
-seedSubjects();

@@ -2,7 +2,7 @@ import "../../../drizzle/envConfig";
 import { db } from "../index";
 import { Product, ProductInsert } from "../schema";
 
-async function seedProudcts() {
+export async function seedProudcts() {
   try {
     const products = [
       {
@@ -113,5 +113,3 @@ async function seedProudcts() {
     process.exit(1);
   }
 }
-
-seedProudcts();

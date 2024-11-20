@@ -43,8 +43,10 @@ const app = new Hono()
         .select({
           meetingDate: sqlDate,
           count: sql`COUNT(*)`,
+          attendance: sql`COUNT(CASE WHEN ${MeetingSession.studentAttendance} = true THEN 1 END)`,
         })
         .from(Meeting)
+        .leftJoin(MeetingSession, eq(MeetingSession.meetingId, Meeting.id))
         .groupBy(sqlDate)
         .orderBy(sql`DATE(${Meeting.startTime}) DESC`);
 
@@ -173,77 +175,7 @@ const app = new Hono()
         .where(eq(sql`DATE(${Meeting.startTime})`, sql`DATE(${date})`))
         .orderBy(asc(Meeting.startTime));
 
-      // Group by student and then by program
-      const groupedMeetings = meetings.reduce(
-        (acc, meeting) => {
-          const studentKey = meeting.studentName!;
-
-          if (!acc[studentKey]) {
-            acc[studentKey] = {
-              studentId: meeting.studentId,
-              studentName: meeting.studentName!,
-              programs: {},
-            };
-          }
-
-          const programKey = meeting.programName!;
-          if (!acc[studentKey].programs[programKey]) {
-            acc[studentKey].programs[programKey] = {
-              programId: meeting.programId,
-              programName: meeting.programName!,
-              meetings: [],
-            };
-          }
-
-          acc[studentKey].programs[programKey].meetings.push({
-            tutorId: meeting.tutorId!,
-            tutorName: meeting.tutorName!,
-            attendance: meeting.attendance ?? false,
-            id: meeting.id,
-            startTime: meeting.startTime,
-            endTime: meeting.endTime,
-            location: meeting.location!,
-            status: meeting.status!,
-            type: meeting.type!,
-          });
-
-          return acc;
-        },
-        {} as Record<
-          string,
-          {
-            studentId: number;
-            studentName: string;
-            programs: Record<
-              string,
-              {
-                programId: number;
-                programName: string;
-                meetings: Array<{
-                  tutorId: string;
-                  tutorName: string;
-                  attendance: boolean;
-                  id: number;
-                  startTime: Date;
-                  endTime: Date;
-                  location: string;
-                  status: string;
-                  type: string;
-                }>;
-              }
-            >;
-          }
-        >,
-      );
-
-      const formattedMeetings = Object.values(groupedMeetings).map(
-        (student) => ({
-          ...student,
-          programs: Object.values(student.programs),
-        }),
-      );
-
-      return c.json(formattedMeetings);
+      return c.json(meetings);
     },
   )
   .get(
@@ -290,6 +222,7 @@ const app = new Hono()
     const validatedSession = c.req.valid("json");
 
     const values: MeetingSessionInsert = {
+      meetingId: validatedSession.meetingId,
       tutorId: validatedSession.teacherId,
       studentAttendance: true,
       status: "completed",
@@ -298,14 +231,9 @@ const app = new Hono()
       duration: validatedSession.duration,
     };
 
-    const valuesWithMeetinId = validatedSession.meetingId.map((meetingId) => ({
-      ...values,
-      meetingId,
-    }));
-
     const meetingSessions = await db
       .insert(MeetingSession)
-      .values(valuesWithMeetinId)
+      .values(values)
       .onConflictDoUpdate({
         target: [MeetingSession.meetingId],
         set: values,

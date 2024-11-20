@@ -1,12 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import { id } from "date-fns/locale";
 import { format } from "date-fns";
 
 import { ColumnDef } from "@tanstack/react-table";
-import DropdownAction from "@/features/meeting/components/dropdown-action";
-import { MeetingsResponse } from "../api/get-meetings";
-import Link from "next/link";
+import { MeetingsResponse } from "../queries/get-meetings";
 
 export const columns: ColumnDef<MeetingsResponse[0]>[] = [
   {
@@ -38,15 +38,19 @@ export const columns: ColumnDef<MeetingsResponse[0]>[] = [
   },
   {
     id: "attendance",
-    header: () => <div className="text-center">Attendance</div>,
-    cell: () => {
-      return <p className="text-center">0</p>;
-    },
-  },
-  {
-    id: "actions",
-    cell: () => {
-      return <DropdownAction />;
+    accessorKey: "attendance",
+    header: () => <div className="text-start">Attendance</div>,
+    cell: ({ row }) => {
+      const attendance = row.getValue("attendance");
+      const ratio = Math.floor(
+        (Number(attendance) / Number(row.getValue("count"))) * 100,
+      );
+      return (
+        <p className="text-start">
+          {row.getValue("attendance")} present{" "}
+          <span className="text-muted-foreground text-xs italic">{ratio}%</span>
+        </p>
+      );
     },
   },
 ];

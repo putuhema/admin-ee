@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MultiSelectCombobox } from "@/components/multi-combobox";
-import { Button } from "@/components/ui/button";
+
 import {
   Form,
   FormControl,
@@ -18,24 +17,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { meetingSchema, MeetingType } from "@/features/meeting/schema";
-import { useGetPrograms } from "@/features/programs/hooks/get";
-import { useGetStudents } from "@/features/students/hooks/use-get-students";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { MultiSelectCombobox } from "@/components/multi-combobox";
 
+import { meetingSchema, MeetingType } from "@/features/meeting/schema";
+import { useGetPrograms } from "@/features/programs/hooks/get";
+import { useGetStudents } from "@/features/students/queries/use-get-students";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { usePostSchedule } from "@/features/meeting/api/post-meeting";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { usePostSchedule } from "@/features/meeting/queries/post-meeting";
 
-export default function MeetingForm() {
+export function ScheduleForm() {
   const form = useForm<MeetingType>({
     resolver: zodResolver(meetingSchema),
     defaultValues: {
