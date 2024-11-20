@@ -21,6 +21,8 @@ import { StudentTable } from "./student-table";
 import { cn } from "@/lib/utils";
 import TablePagination from "./student-table-pagination";
 import useNewStudent from "../hooks/use-new-student";
+import { useBulkDeleteStudents } from "../queries/bulk-delete";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface StudentTableContainerProps {
   onSelectStudent: (student: Student) => void;
@@ -35,6 +37,11 @@ export const StudentTableContainer = ({
 }: StudentTableContainerProps) => {
   const { onOpen } = useNewStudent();
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
+  const { mutate: deleteStudents } = useBulkDeleteStudents();
+  const [ConfirmationDialog, confirm] = useConfirm({
+    title: "Are you sure?",
+    message: "The selected students will get deleted permanently.",
+  });
 
   return (
     <div
@@ -56,13 +63,12 @@ export const StudentTableContainer = ({
                 selectedStudents={selectedStudents}
                 isFilterOpen={isFilterOpen}
                 setIsFilterOpen={setIsFilterOpen}
-                onDeleteTasks={() => Promise.resolve()}
-                // onDeleteTasks={createDeleteTasksHandler(
-                //   table,
-                //   selectedStudents,
-                //   confirm,
-                //   deleteTasks,
-                // )}
+                onDeleteStudents={createDeleteTasksHandler(
+                  table,
+                  selectedStudents,
+                  confirm,
+                  deleteStudents,
+                )}
                 table={table}
               />
 
@@ -80,6 +86,7 @@ export const StudentTableContainer = ({
           );
         }}
       </TableInstance>
+      <ConfirmationDialog />
     </div>
   );
 };
@@ -90,7 +97,7 @@ interface TableToolbarProps {
   selectedStudents: any[];
   isFilterOpen: boolean;
   setIsFilterOpen: (value: boolean) => void;
-  onDeleteTasks: () => Promise<void>;
+  onDeleteStudents: () => Promise<void>;
   table: any;
 }
 
@@ -100,7 +107,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
   selectedStudents,
   isFilterOpen,
   setIsFilterOpen,
-  onDeleteTasks,
+  onDeleteStudents,
   table,
 }) => (
   <div className="mb-4 flex flex-col items-start justify-between gap-4 md:flex-row">
@@ -125,7 +132,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
       <div>
         <DeleteButton
           selectedStudents={selectedStudents}
-          onDelete={onDeleteTasks}
+          onDelete={onDeleteStudents}
         />
       </div>
       <div>
@@ -238,20 +245,19 @@ const ErrorMessage: React.FC = () => (
   </div>
 );
 
-// Utility Functions
 const createDeleteTasksHandler =
   (
     table: any,
-    selectedTasks: any[],
+    selectedStudents: any[],
     confirm: () => Promise<unknown>,
-    deleteTasks: (ids: string[]) => void,
+    deleteStudents: (ids: number[]) => void,
   ) =>
   async () => {
-    if (selectedTasks.length === 0) return;
+    if (selectedStudents.length === 0) return;
 
     const confirmed = await confirm();
     if (confirmed) {
       table.setRowSelection({});
-      deleteTasks(selectedTasks.map((row) => row.original.id));
+      deleteStudents(selectedStudents.map((row) => row.original.id));
     }
   };

@@ -10,7 +10,17 @@ import {
   StudentGuardian,
 } from "@/db/schema";
 import { Hono } from "hono";
-import { and, AnyColumn, asc, desc, eq, ilike, sql, SQL } from "drizzle-orm";
+import {
+  and,
+  AnyColumn,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  sql,
+  SQL,
+} from "drizzle-orm";
 import { z } from "zod";
 import { studentGuardianSchema, studentSchema } from "./schema";
 
@@ -311,6 +321,30 @@ const app = new Hono()
     });
 
     return c.json(newGuardian, 201);
-  });
+  })
+  .post(
+    "/bulk-delete",
+    zValidator("json", z.object({ ids: z.array(z.number()) })),
+    async (c) => {
+      try {
+        const { ids } = c.req.valid("json");
+
+        const deleteStudents = await db
+          .update(Student)
+          .set({ isDeleted: true, deletedAt: new Date() })
+          .where(inArray(Student.id, ids))
+          .returning();
+
+        if (deleteStudents.length === 0) {
+          return c.json({ error: "Failed to delete students" }, 400);
+        }
+
+        return c.json({ message: "Students deleted successfully" }, 200);
+      } catch (err) {
+        console.error("Failed to delete students: ", err);
+        return c.json({ error: "Internal Server Error" }, 500);
+      }
+    },
+  );
 
 export default app;

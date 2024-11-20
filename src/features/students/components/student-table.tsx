@@ -6,7 +6,6 @@ import {
   flexRender,
   Table as TableType,
 } from "@tanstack/react-table";
-import { ArrowDownNarrowWideIcon, ArrowUpWideNarrowIcon } from "lucide-react";
 
 import {
   Table,
@@ -16,7 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowDownNarrowWideIcon, ArrowUpWideNarrowIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { DEFAULT_PAGE_SIZE } from "@/constants";
@@ -60,7 +61,6 @@ export const StudentTable: React.FC<TaskTableProps> = ({
           ))}
         </TableHeader>
 
-        {/* Table Body Section */}
         <TableBody className="overflow-y-auto">
           {renderTableContent(table, isLoading, onSelectStudent)}
         </TableBody>
@@ -101,11 +101,11 @@ const renderSortIcon = (sortDirection: false | "asc" | "desc") => {
 const renderTableContent = (
   table: TableType<Student>,
   isLoading: boolean,
-  onSelectTask: (task: Student) => void,
+  onSelectStudent: (student: Student) => void,
 ) => {
   if (isLoading) {
     return (
-      <TaskTableSkeleton
+      <StudentTableSkeleton
         rows={DEFAULT_PAGE_SIZE}
         columns={table.getAllColumns().map((col) => col.columnDef)}
       />
@@ -126,7 +126,7 @@ const renderTableContent = (
         <TableCell
           key={cell.id}
           className={getCellClassName(cell)}
-          onClick={() => handleCellClick(cell, row, onSelectTask)}
+          onClick={() => handleCellClick(cell, row, onSelectStudent)}
           role="cell"
         >
           {renderCellContent(cell)}
@@ -148,12 +148,12 @@ const EmptyTableMessage: React.FC<{ colSpan: number }> = ({ colSpan }) => (
   </TableRow>
 );
 
-interface TaskTableSkeletonProps {
+interface StudentTableSkeletonProps {
   rows: number;
   columns: ColumnDef<Student>[];
 }
 
-const TaskTableSkeleton: React.FC<TaskTableSkeletonProps> = ({
+const StudentTableSkeleton: React.FC<StudentTableSkeletonProps> = ({
   rows,
   columns,
 }) => (
