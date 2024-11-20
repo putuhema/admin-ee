@@ -10,19 +10,92 @@ import {
   StudentGuardian,
 } from "@/db/schema";
 import { Hono } from "hono";
-import { and, asc, eq, ilike } from "drizzle-orm";
+import { and, AnyColumn, asc, desc, eq, ilike, sql, SQL } from "drizzle-orm";
 import { z } from "zod";
 import { studentGuardianSchema, studentSchema } from "./schema";
 
 const app = new Hono()
-  .get("/", async (c) => {
-    const students = await db
-      .select()
-      .from(Student)
-      .where(eq(Student.isDeleted, false))
-      .orderBy(asc(Student.name));
-    return c.json(students);
-  })
+  .get(
+    "/",
+    zValidator(
+      "query",
+      z.object({
+        limit: z.coerce.number().optional().default(10),
+        offset: z.coerce.number().optional().default(0),
+        search: z.string().optional(),
+        sort: z.enum(["name"]).optional(),
+        order: z.enum(["asc", "desc"]).optional().default("desc"),
+      }),
+    ),
+    async (c) => {
+      try {
+        const { limit, offset, search, sort, order } = c.req.valid("query");
+        const whereClause: SQL[] = [];
+
+        whereClause.push(eq(Student.isDeleted, false));
+
+        if (search) {
+          whereClause.push(
+            sql`lower(${Student.name}) like ${`%${search.toLowerCase()}%`} OR lower(${Student.nickname}) like ${`%${search.toLowerCase()}%`}`,
+          );
+        }
+
+        let query = db.select().from(Student);
+
+        if (whereClause.length > 0) {
+          query = query.where(and(...whereClause)) as typeof query;
+        }
+
+        if (sort) {
+          if (sort === "name") {
+            query = query.orderBy(
+              order === "desc" ? sql`student.name desc` : sql`student.name asc`,
+            ) as typeof query;
+          } else {
+            const sortColumn = Student[
+              sort as keyof typeof Student
+            ] as AnyColumn;
+            query = query.orderBy(
+              order === "desc" ? desc(sortColumn) : asc(sortColumn),
+            ) as typeof query;
+          }
+        } else {
+          query = query.orderBy(desc(Student.createdAt)) as typeof query;
+        }
+
+        query = query.limit(limit).offset(offset) as typeof query;
+
+        const students = await query;
+
+        let totalCountQuery = db
+          .select({ count: sql`count(${Student.id})` })
+          .from(Student);
+
+        if (whereClause.length) {
+          totalCountQuery = totalCountQuery.where(
+            and(...whereClause),
+          ) as typeof totalCountQuery;
+        }
+
+        const [{ count }] = await totalCountQuery;
+
+        return c.json(
+          {
+            students,
+            pagination: {
+              total: Number(count),
+              limit,
+              offset,
+            },
+          },
+          200,
+        );
+      } catch (error) {
+        console.error("Error fetching tasks: ", error);
+        return c.json({ error: "Internal Server Error" }, 500);
+      }
+    },
+  )
   .get(
     "/q",
     zValidator(

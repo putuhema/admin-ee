@@ -11,6 +11,7 @@ import {
   index,
   pgEnum,
 } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -87,6 +88,8 @@ export const Student = pgTable(
     index("student_name_idx").on(t.name),
   ],
 );
+
+export const studentSchema = createSelectSchema(Student);
 
 export const Guardian = pgTable(
   "guardian",

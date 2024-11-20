@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import * as React from "react";
 import { useIsClient } from "@uidotdev/usehooks";
 
-import StudentFormSheet from "@/features/students/components/student-form-sheet";
 import { UpdateStudentSheet } from "@/features/students/components/update-student/update-student-sheet";
+import { NewStudentSheet } from "@/features/students/components/add-student/new-student-task";
 
 export default function SheetProvider() {
   const isClient = useIsClient();
@@ -15,7 +15,7 @@ export default function SheetProvider() {
 
   return (
     <div role="region" aria-label="Admin EE Dashboard">
-      <StudentFormSheet />
+      <NewStudentSheet />
       <UpdateStudentSheet />
     </div>
   );

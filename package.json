@@ -41,6 +41,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.36.1",
+    "drizzle-zod": "^0.5.1",
     "fetch\n": "link:@better-fetch/fetch\n",
     "framer-motion": "^11.11.11",
     "hono": "^4.6.9",
