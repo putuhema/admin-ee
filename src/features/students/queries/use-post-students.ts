@@ -3,6 +3,8 @@ import { InferRequestType, InferResponseType } from "hono";
 
 import { client } from "@/lib/rpc";
 import { toast } from "sonner";
+import { studentKeys } from "./keys";
+import { useStudentFiltersStore } from "../store";
 
 type RequestType = InferRequestType<typeof client.api.students.$post>["json"];
 export type StudentsResponseData = InferResponseType<
@@ -14,6 +16,8 @@ export type StudentsResponseData = InferResponseType<
 
 export const usePostStudents = () => {
   const queryClient = useQueryClient();
+  const { appliedFilters, limit, offset } = useStudentFiltersStore();
+
   const mutation = useMutation({
     mutationFn: async (data: RequestType) => {
       const res = await client.api.students.$post({ json: data });
@@ -26,33 +30,46 @@ export const usePostStudents = () => {
       return await res.json();
     },
     onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ["students"] });
+      await queryClient.cancelQueries({
+        queryKey: studentKeys.lists(limit, offset, appliedFilters),
+      });
       const previousStudents = queryClient.getQueryData<StudentsResponseData[]>(
         ["students"],
       );
 
-      queryClient.setQueryData(["students"], (old: any) => {
-        const id = Math.floor(Math.random() * old.length * 1_000);
-        return [
-          ...old,
-          {
-            ...data,
-            id,
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            optimisticStatus: "creating",
-          },
-        ];
-      });
+      queryClient.setQueryData(
+        studentKeys.lists(limit, offset, appliedFilters),
+        (old: any) => {
+          const id = Math.floor(Math.random() * old.length * 1_000);
+          return {
+            ...old,
+            students: [
+              {
+                ...data,
+                id,
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                optimisticStatus: "creating",
+              },
+              ...(old?.students || []),
+            ],
+          };
+        },
+      );
 
       return { previousStudents };
     },
     onError: (_, __, context) => {
-      queryClient.setQueryData(["students"], context?.previousStudents);
+      queryClient.setQueryData(
+        studentKeys.lists(limit, offset, appliedFilters),
+        context?.previousStudents,
+      );
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({
+        queryKey: studentKeys.lists(limit, offset, appliedFilters),
+      });
     },
   });
 

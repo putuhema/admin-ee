@@ -4,6 +4,7 @@ import { InferResponseType } from "hono";
 import { StudentFilters } from "@/features/students/types";
 import { z } from "zod";
 import { studentSchema } from "@/db/schema";
+import { studentKeys } from "./keys";
 
 export type StudentResponse = InferResponseType<
   typeof client.api.students.$get,
@@ -11,14 +12,6 @@ export type StudentResponse = InferResponseType<
 >;
 export type Student = z.infer<typeof studentSchema> & {
   optimisticStatus?: "creating" | "updating" | "deleting";
-};
-
-const studentKeys = {
-  all: ["students"] as const,
-  lists: (limit?: number, offset?: number, filters?: StudentFilters) =>
-    [...studentKeys.all, "list", limit, offset, filters] as const,
-  detail: (id: number) =>
-    [...studentKeys.all, "detail", id.toString()] as const,
 };
 
 export const useGetStudents = (

@@ -4,6 +4,8 @@ import { InferRequestType, InferResponseType } from "hono";
 import { client } from "@/lib/rpc";
 import { toast } from "sonner";
 import { StudentsResponseData } from "./use-post-students";
+import { useStudentFiltersStore } from "../store";
+import { studentKeys } from "./keys";
 
 const $patch = client.api.students[":studentId"]["$patch"];
 type RequestType = InferRequestType<typeof $patch>["json"];
@@ -13,6 +15,8 @@ type StudentResponseData = InferResponseType<typeof $patch, 200> & {
 
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient();
+  const { appliedFilters, limit, offset } = useStudentFiltersStore();
+
   const mutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: RequestType }) => {
       const res = await $patch({
@@ -27,11 +31,12 @@ export const useUpdateStudent = () => {
       }
 
       toast("Successfully updated student");
-
       return await res.json();
     },
     onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: ["students"] });
+      await queryClient.cancelQueries({
+        queryKey: studentKeys.lists(limit, offset, appliedFilters),
+      });
 
       const previousStudents = queryClient.getQueryData<StudentsResponseData[]>(
         ["students"],
@@ -42,22 +47,19 @@ export const useUpdateStudent = () => {
       ]);
 
       if (previousStudents) {
-        queryClient.setQueryData(["students"], (old: any) => {
-          return old.map((student: any) => {
-            if (student.id === id) {
-              return {
-                ...student,
-                ...data,
-                optimisticStatus: "updating",
-              };
-            }
-            return student;
-          });
-        });
+        queryClient.setQueryData(
+          studentKeys.lists(limit, offset, appliedFilters),
+          (old: any) => ({
+            ...old,
+            students: old.tasks.map((s: StudentsResponseData) =>
+              s.id === id ? { ...s, ...data, optimisticStatus: "updating" } : s,
+            ),
+          }),
+        );
       }
 
       if (previousStudent) {
-        queryClient.setQueryData(["student", id], (old: any) => {
+        queryClient.setQueryData(studentKeys.detail(id), (old: any) => {
           return {
             ...old,
             ...data,
@@ -69,12 +71,21 @@ export const useUpdateStudent = () => {
       return { previousStudents, previousStudent };
     },
     onError: (_, { id }, context) => {
-      queryClient.setQueryData(["student", id], context?.previousStudent);
-      queryClient.setQueryData(["students"], context?.previousStudents);
+      queryClient.setQueryData(
+        studentKeys.detail(id),
+        context?.previousStudent,
+      );
+      queryClient.setQueryData(
+        studentKeys.lists(limit, offset, appliedFilters),
+        context?.previousStudents,
+      );
     },
     onSettled: (_, __, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["student", id] });
-      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: studentKeys.detail(id) });
+
+      queryClient.invalidateQueries({
+        queryKey: studentKeys.lists(limit, offset, appliedFilters),
+      });
     },
   });
 
