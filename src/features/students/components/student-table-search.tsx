@@ -44,8 +44,8 @@ export const StudentSearch = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="w-full pl-10 pr-10"
-        placeholder="Search tasks"
-        aria-label="Search tasks"
+        placeholder="Search students"
+        aria-label="Search students"
         autoComplete="off"
       />
 

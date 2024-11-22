@@ -55,7 +55,7 @@ export const columns: ColumnDef<ResponseType[number]>[] = [
     header: () => <div className="text-center">Description</div>,
     cell: ({ row }) => {
       return (
-        <p className="verflow-hidden text-ellipsis whitespace-nowrap w-[100px]">
+        <p className="overflow-hidden text-ellipsis whitespace-nowrap w-[100px]">
           {row.getValue("description")}
         </p>
       );
