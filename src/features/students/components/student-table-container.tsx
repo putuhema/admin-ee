@@ -156,12 +156,11 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
         </Tooltip>
       </div>
       <div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ExportButton selectedStudent={selectedStudent} />
-          </TooltipTrigger>
-          <TooltipContent>Coming soon</TooltipContent>
-        </Tooltip>
+        {/* <Tooltip> */}
+        {/*   <TooltipTrigger asChild> */}
+        {/*     <ExportButton selectedStudent={selectedStudent} /> */}
+        {/*   </TooltipTrigger> */}
+        {/* </Tooltip> */}
       </div>
     </div>
   </div>

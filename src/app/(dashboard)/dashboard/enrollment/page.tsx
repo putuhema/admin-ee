@@ -32,7 +32,6 @@ export default async function EnrollmentPage() {
             Add Enrollment
           </Link>
         </div>
-
         <Table />
       </main>
     </HydrationBoundary>

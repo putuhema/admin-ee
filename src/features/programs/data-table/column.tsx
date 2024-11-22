@@ -37,21 +37,27 @@ export const columns: ColumnDef<ResponseType[number]>[] = [
     id: "level",
     header: () => <div className="text-center">Available Level</div>,
     cell: ({ row }) => {
-      const price = row.getValue("pricePerMeeting") as number;
+      const levels = row.original.levels;
+      const levelStr = levels.map((l) => l.level).join(", ");
 
       return (
-        <p className={cn("text-center")}>
-          {price > 0 ? formatCurrency(Number(price)) : "-"}
-        </p>
+        <div
+          className={cn("text-center w-[100px] text-ellipsis overflow-hidden")}
+        >
+          {levelStr}
+        </div>
       );
     },
+    minSize: 200,
   },
   {
     accessorKey: "description",
     header: () => <div className="text-center">Description</div>,
     cell: ({ row }) => {
       return (
-        <p className="md:text-wrap w-[100px] ">{row.getValue("description")}</p>
+        <p className="verflow-hidden text-ellipsis whitespace-nowrap w-[100px]">
+          {row.getValue("description")}
+        </p>
       );
     },
   },

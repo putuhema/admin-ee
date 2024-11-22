@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { StudentForm } from "@/features/students/components/student-form/student-form";
 import useNewStudent from "../../hooks/use-new-student";
+import { Popover } from "@/components/ui/popover";
 
 export function NewStudentSheet() {
   const { isOpen, onClose } = useNewStudent();

@@ -99,7 +99,7 @@ export default function EnrollmentForm() {
   const handleRenderSelectedItem = (
     values: string[],
     options: { label: string; value: string }[],
-    items: number = 3
+    items: number = 3,
   ): string => {
     if (values.length === 0) return "";
 
@@ -155,7 +155,7 @@ export default function EnrollmentForm() {
                                 variant={"outline"}
                                 className={cn(
                                   "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
+                                  !field.value && "text-muted-foreground",
                                 )}
                               >
                                 {field.value ? (
@@ -343,7 +343,7 @@ export default function EnrollmentForm() {
                               <div
                                 role="option"
                                 aria-selected={field.value.includes(
-                                  option.value
+                                  option.value,
                                 )}
                               >
                                 {option.label}
@@ -352,7 +352,7 @@ export default function EnrollmentForm() {
                             renderSelectedItem={() =>
                               handleRenderSelectedItem(field.value, extras!, 4)
                             }
-                            aria-label="Filter by task type"
+                            aria-label="Filter by program type"
                             aria-required="false"
                             aria-multiselectable="true"
                           />
@@ -378,7 +378,7 @@ export default function EnrollmentForm() {
                               <div
                                 role="option"
                                 aria-selected={field.value.includes(
-                                  option.value
+                                  option.value,
                                 )}
                               >
                                 {option.label}
@@ -387,7 +387,7 @@ export default function EnrollmentForm() {
                             renderSelectedItem={() =>
                               handleRenderSelectedItem(
                                 field.value,
-                                productsMemo!
+                                productsMemo!,
                               )
                             }
                             aria-label="Filter by products"

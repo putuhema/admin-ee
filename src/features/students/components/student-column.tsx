@@ -11,11 +11,11 @@ export const studentColumns: ColumnDef<Student>[] = [
     id: "select",
     accessorKey: "select",
     header: ({ table }) => (
-      <div className="flex min-w-[20px] items-center justify-center">
+      <div className="flex min-w-[10px] items-center justify-center">
         <Checkbox
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all tasks"
+          aria-label="Select all students"
           name="select-all"
         />
       </div>
@@ -23,7 +23,7 @@ export const studentColumns: ColumnDef<Student>[] = [
     cell: ({ row }) => renderSelectionCell(row),
     enableSorting: false,
     enableHiding: false,
-    minSize: 40,
+    minSize: 10,
   },
 
   {

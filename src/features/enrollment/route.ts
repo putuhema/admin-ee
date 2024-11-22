@@ -53,7 +53,7 @@ const app = new Hono()
       .leftJoin(Order, eq(Enrollment.orderId, Order.id))
       .leftJoin(
         MeetingPackage,
-        eq(Enrollment.meetingPackageId, MeetingPackage.id)
+        eq(Enrollment.meetingPackageId, MeetingPackage.id),
       )
       .leftJoin(ProgramLevel, eq(Enrollment.currentLevelId, ProgramLevel.id))
       .orderBy(Student.name);
@@ -109,7 +109,7 @@ const app = new Hono()
           ...enrollment.extras.map((extraId) => ({
             ...defaultOrderDetails,
             extraId: Number(extraId),
-          }))
+          })),
         );
       }
 
@@ -118,7 +118,7 @@ const app = new Hono()
           ...enrollment.products.map((productId) => ({
             ...defaultOrderDetails,
             productId: Number(productId),
-          }))
+          })),
         );
       }
 
@@ -134,9 +134,22 @@ const app = new Hono()
         status: "pending",
       });
 
+      const [selectedPackage] = await tx
+        .select({ count: MeetingPackage.count, id: MeetingPackage.id })
+        .from(MeetingPackage)
+        .where(eq(MeetingPackage.id, Number(enrollment.packages)))
+        .limit(1);
+
+      if (!selectedPackage) {
+        return c.json({ message: "Meeting package not found" }, 404);
+      }
+
+      const meetingLeft = selectedPackage.count * enrollment.quantity;
+
       const newEnrollment = await tx
         .insert(Enrollment)
         .values({
+          meetingLeft,
           studentId: student[0].id,
           programId: program[0].id,
           orderId: order[0].id,
