@@ -12,4 +12,4 @@ export const enrollmentSchema = z.object({
   notes: z.string().optional(),
 });
 
-export type EnrollmentType = z.infer<typeof enrollmentSchema>;
+export type EnrollmentData = z.infer<typeof enrollmentSchema>;

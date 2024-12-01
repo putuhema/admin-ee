@@ -84,7 +84,7 @@ export const MultiSelectCombobox = <T extends BaseOption>({
     onChange(
       value.includes(currentValue)
         ? value.filter((val) => val !== currentValue)
-        : [...value, currentValue]
+        : [...value, currentValue],
     );
   };
 
@@ -125,9 +125,7 @@ export const MultiSelectCombobox = <T extends BaseOption>({
 
           {/* Selected items display */}
           <div className="flex-1 overflow-hidden">
-            {value.length > 0
-              ? renderSelectedItem(value)
-              : `Select ${label}...`}
+            {value.length > 0 ? renderSelectedItem(value) : `Pilih ${label}...`}
           </div>
 
           {/* Control buttons */}
@@ -173,7 +171,9 @@ export const MultiSelectCombobox = <T extends BaseOption>({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value.includes(option.value) ? "opacity-100" : "opacity-0"
+                      value.includes(option.value)
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                     aria-hidden="true"
                   />

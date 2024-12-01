@@ -1,6 +1,6 @@
 import { packageOptions } from "@/features/meeting-package/api/get-packages";
 import { programQueryOptions } from "@/features/programs/hooks/get";
-import EnrollmentForm from "./form";
+import EnrollmentForm from "@/features/enrollment/components/enrollment-form/enrollment-form";
 import {
   dehydrate,
   HydrationBoundary,

@@ -3,82 +3,58 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { type ResponseType } from "../hooks/get";
 import DropdownAction from "../components/dropdown-action";
-import { cn, formatCurrency } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
+import { formatCurrency } from "@/lib/utils";
 
 export const columns: ColumnDef<ResponseType[number]>[] = [
   {
+    id: "index",
     header: "#",
     cell: ({ row }) => {
       return <span>{row.index + 1}</span>;
     },
   },
   {
+    id: "name",
     accessorKey: "name",
-    header: "Name",
+    header: "Nama Program",
     cell: ({ row }) => {
       return <span className="capitalize">{row.getValue("name")}</span>;
     },
   },
   {
-    accessorKey: "pricePerMeeting",
-    header: () => <div className="text-center">Price Per Meeting</div>,
+    accessorKey: "book",
+    header: "Buku",
     cell: ({ row }) => {
-      const price = row.getValue("pricePerMeeting") as number;
-
+      const book = row.original.extra.find((e) => e.type === "book")?.price;
+      return <span className="capitalize">{formatCurrency(book ?? 0)}</span>;
+    },
+  },
+  {
+    accessorKey: "certificate",
+    header: "sertifikat",
+    cell: ({ row }) => {
+      const certificate = row.original.extra.find(
+        (e) => e.type === "certificate",
+      )?.price;
       return (
-        <p className={cn("text-center")}>
-          {price > 0 ? formatCurrency(Number(price)) : "-"}
-        </p>
+        <span className="capitalize">{formatCurrency(certificate ?? 0)}</span>
       );
     },
   },
   {
-    id: "level",
-    header: () => <div className="text-center">Available Level</div>,
+    accessorKey: "thropy",
+    header: "Trofi",
     cell: ({ row }) => {
-      const levels = row.original.levels;
-      const levelStr = levels.map((l) => l.level).join(", ");
-
-      return (
-        <div
-          className={cn("text-center w-[100px] text-ellipsis overflow-hidden")}
-        >
-          {levelStr}
-        </div>
-      );
-    },
-    minSize: 200,
-  },
-  {
-    accessorKey: "description",
-    header: () => <div className="text-center">Description</div>,
-    cell: ({ row }) => {
-      return (
-        <p className="overflow-hidden text-ellipsis whitespace-nowrap w-[100px]">
-          {row.getValue("description")}
-        </p>
-      );
+      const thropy = row.original.extra.find((e) => e.type === "thropy")?.price;
+      return <span className="capitalize">{formatCurrency(thropy ?? 0)}</span>;
     },
   },
   {
-    id: "extra",
-    header: () => <div className="text-center">Program Extra Fee</div>,
+    accessorKey: "medal",
+    header: "Medali",
     cell: ({ row }) => {
-      const extras = row.original.extra;
-      return (
-        <div>
-          {extras.map((extra: { type: string; price: number }) => (
-            <div key={extra.type}>
-              <div className="flex justify-between items-center text-muted-foreground hover:text-foreground cursor-pointer">
-                <span className="capitalize">{extra.type}</span>
-                <span>{formatCurrency(extra.price)}</span>
-              </div>
-              <Separator />
-            </div>
-          ))}
-        </div>
-      );
+      const medal = row.original.extra.find((e) => e.type === "medal")?.price;
+      return <span className="capitalize">{formatCurrency(medal ?? 0)}</span>;
     },
   },
   {

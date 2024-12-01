@@ -8,12 +8,13 @@ import {
   OrderDetailInsert,
   OrderInsert,
   Payment,
+  Product,
   Program,
-  ProgramLevel,
+  ProgramExtra,
   Student,
 } from "@/db/schema";
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { enrollmentSchema } from "./schema";
 
@@ -25,7 +26,7 @@ const app = new Hono()
           id: Enrollment.id,
           enrollmentDate: Enrollment.enrollmentDate,
           status: Enrollment.status,
-          qty: Enrollment.meeting_qty,
+          qty: Enrollment.meetingQty,
         },
         student: {
           id: Student.id,
@@ -34,7 +35,6 @@ const app = new Hono()
         program: {
           id: Program.id,
           name: Program.name,
-          level: ProgramLevel.name,
         },
         orders: {
           id: Order.id,
@@ -55,7 +55,6 @@ const app = new Hono()
         MeetingPackage,
         eq(Enrollment.meetingPackageId, MeetingPackage.id),
       )
-      .leftJoin(ProgramLevel, eq(Enrollment.currentLevelId, ProgramLevel.id))
       .orderBy(Student.name);
 
     return c.json(enrollments);
@@ -79,46 +78,104 @@ const app = new Hono()
       const program = await tx
         .select({
           id: Program.id,
-          price: Program.pricePerMeeting,
         })
         .from(Program)
         .where(eq(Program.id, Number(enrollment.programId)))
         .limit(1);
 
+      const choosePackage = await tx
+        .select()
+        .from(MeetingPackage)
+        .where(eq(MeetingPackage.id, Number(enrollment.packages)));
+
+      if (choosePackage.length === 0) {
+        return c.json({ message: "Meeting package not found" });
+      }
+
+      const programExtras = await tx
+        .select({
+          id: ProgramExtra.id,
+          price: ProgramExtra.price,
+        })
+        .from(ProgramExtra)
+        .where(inArray(ProgramExtra.id, enrollment.extras.map(Number)));
+
+      const programProducts = await tx
+        .select({
+          id: Product.id,
+          price: Product.price,
+        })
+        .from(Product)
+        .where(inArray(Product.id, enrollment.products.map(Number)));
+
+      let totalAmount =
+        (choosePackage[0].price +
+          choosePackage[0].price * (choosePackage[0].discount / 100)) *
+        enrollment.quantity;
+
+      const extrasTotalAmount = programExtras.reduce(
+        (acc, extra) => acc + extra.price,
+        0,
+      );
+      totalAmount += extrasTotalAmount;
+
+      const productsTotalAmount = programProducts.reduce(
+        (acc, product) => acc + product.price,
+        0,
+      );
+      totalAmount += productsTotalAmount;
+
       const order = await tx
         .insert(Order)
         .values({
+          totalAmount,
           studentId: student[0].id,
           orderDate: new Date(),
-          totalAmount: program[0].price,
           status: "pending" as OrderInsert["status"],
         })
         .returning();
 
-      const defaultOrderDetails: OrderDetailInsert = {
+      const orderDetailsValues: OrderDetailInsert[] = [];
+
+      orderDetailsValues.push({
         orderId: order[0].id,
         programId: program[0].id,
-        price: program[0].price,
         packageId: Number(enrollment.packages),
         quantity: enrollment.quantity,
-      };
+        price: choosePackage[0].price,
+      });
 
-      const orderDetailsValues: OrderDetailInsert[] = [];
       if (enrollment.extras.length > 0) {
         orderDetailsValues.push(
-          ...enrollment.extras.map((extraId) => ({
-            ...defaultOrderDetails,
-            extraId: Number(extraId),
-          })),
+          ...enrollment.extras.map((extraId) => {
+            const extra = programExtras.find((p) => p.id === Number(extraId));
+            return {
+              orderId: order[0].id,
+              programId: program[0].id,
+              packageId: Number(enrollment.packages),
+              quantity: enrollment.quantity,
+              extraId: Number(extraId),
+              price: extra?.price ?? 0,
+            };
+          }),
         );
       }
 
       if (enrollment.products.length > 0) {
         orderDetailsValues.push(
-          ...enrollment.products.map((productId) => ({
-            ...defaultOrderDetails,
-            productId: Number(productId),
-          })),
+          ...enrollment.products.map((productId) => {
+            const product = programExtras.find(
+              (p) => p.id === Number(productId),
+            );
+            return {
+              orderId: order[0].id,
+              programId: program[0].id,
+              packageId: Number(enrollment.packages),
+              quantity: enrollment.quantity,
+              productId: Number(productId),
+              price: product?.price ?? 0,
+            };
+          }),
         );
       }
 
@@ -157,7 +214,7 @@ const app = new Hono()
           meetingPackageId: Number(enrollment.packages),
           quantity: enrollment.quantity,
           enrollmentDate: enrollment.enrollmentDate,
-          meeting_qty: enrollment.quantity,
+          meetingQty: enrollment.quantity,
           status: "active",
           notes: enrollment.notes,
         } as EnrollmentInsert)

@@ -1,18 +1,18 @@
 "use client";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/features/programs/components/data-table";
 import { useGetPrograms } from "../hooks/get";
 import { columns } from "./column";
 
 export default function Table() {
-  const { data } = useGetPrograms();
+  const { data, isLoading } = useGetPrograms();
 
-  if (!data) {
+  if (isLoading) {
     return <div className="w-full text-center animate-pulse">Loading...</div>;
   }
 
-  return (
-    <>
-      <DataTable columns={columns} data={data} />;
-    </>
-  );
+  if (!data) {
+    return <div className="w-full text-center">No data found</div>;
+  }
+
+  return <DataTable columns={columns} data={data} />;
 }

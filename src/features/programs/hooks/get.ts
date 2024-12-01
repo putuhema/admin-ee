@@ -19,9 +19,7 @@ export const programQueryOptions: UseQueryOptions<ResponseType> = {
 };
 
 export function useGetPrograms() {
-  const query = useQuery<ResponseType, Error>(programQueryOptions);
-
-  return query;
+  return useQuery<ResponseType, Error>(programQueryOptions);
 }
 
 export async function getProgram(programId: number) {

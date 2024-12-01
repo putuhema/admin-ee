@@ -31,7 +31,6 @@ export default function FormSheet({ id }: { id: number }) {
     defaultValues: {
       name: "",
       description: "",
-      pricePerMeeting: "",
       extra: [],
     },
   });
@@ -41,25 +40,8 @@ export default function FormSheet({ id }: { id: number }) {
       form.setValue("id", data.id);
       form.setValue("name", data.name);
       form.setValue("description", data.description);
-      form.setValue(
-        "pricePerMeeting",
-        formatRupiah(data.pricePerMeeting.toString())
-      );
     }
   }, [data, form]);
-
-  const formatRupiah = (str: string) => {
-    const number = str.replace(/[^\d.]/g, "");
-    const [whole, decimal] = number.split(".");
-    const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return decimal ? `${formattedWhole}.${decimal}` : formattedWhole;
-  };
-
-  const convertToNumber = (str: string) => {
-    const numberString = str.replace(/[^\d]/g, "");
-    const toNumber = parseInt(numberString, 10).toString();
-    return !isNaN(parseInt(numberString, 10)) ? toNumber : "0";
-  };
 
   const mutation = usePutProgram();
 
@@ -67,7 +49,6 @@ export default function FormSheet({ id }: { id: number }) {
     mutation.mutate({
       ...values,
       id,
-      pricePerMeeting: convertToNumber(values.pricePerMeeting),
     });
   };
 
@@ -82,11 +63,7 @@ export default function FormSheet({ id }: { id: number }) {
   }
 
   return (
-    <CustomSheet
-      SHEET_ID={SHEET_ID + id}
-      title="Programs"
-      desc="Add or Edit Programs"
-    >
+    <CustomSheet SHEET_ID={SHEET_ID + id} title="Programs">
       <div className="mt-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -116,33 +93,6 @@ export default function FormSheet({ id }: { id: number }) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="pricePerMeeting"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Program Price</FormLabel>
-                  <FormControl>
-                    <div className="flex items-center">
-                      <code className="px-2 py-1 h-9 text-sm grid place-content-center font-bold bg-accent text-muted-foreground border rounded-l-md border-r-0">
-                        Rp.
-                      </code>
-                      <Input
-                        {...field}
-                        className="rounded-l-none"
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          const formattedValue = formatRupiah(inputValue);
-                          form.setValue("pricePerMeeting", formattedValue);
-                        }}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <Button disabled={mutation.isPending} type="submit">
               {mutation.isPending ? (
                 <Loader2 className="w-h h-4  animate-spin" />

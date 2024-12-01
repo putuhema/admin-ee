@@ -149,7 +149,6 @@ export const Program = pgTable(
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     description: text("description").notNull(),
-    pricePerMeeting: integer("price_per_meeting").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -181,26 +180,6 @@ export const ProgramExtra = pgTable(
   ],
 );
 
-export const ProgramLevel = pgTable("program_level", {
-  id: serial("id").primaryKey(),
-  programId: integer("program_id")
-    .notNull()
-    .references(() => Program.id),
-  name: varchar("name", { length: 255 }).notNull(),
-  price: integer("price"),
-  description: text("description"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
-
-export type ProgramLevelType = typeof ProgramLevel.$inferSelect;
-export type ProgramLevelInsert = typeof ProgramLevel.$inferInsert;
-
 export const EnrollmentStatus = pgEnum("enrollment_status", [
   "active",
   "inactive",
@@ -214,13 +193,10 @@ export const Enrollment = pgTable(
     studentId: integer("student_id").references(() => Student.id),
     programId: integer("program_id").references(() => Program.id),
     orderId: integer("order_id").references(() => Order.id),
-    currentLevelId: integer("current_level_id").references(
-      () => ProgramLevel.id,
-    ),
     meetingPackageId: integer("meeting_package_id").references(
       () => MeetingPackage.id,
     ),
-    meeting_qty: integer("meeting_qty").notNull(),
+    meetingQty: integer("meeting_qty").notNull(),
     meetingLeft: integer("meeting_left").notNull(),
     enrollmentDate: timestamp("enrollment_date", { withTimezone: true }),
     status: EnrollmentStatus("status").default("active"),
@@ -229,7 +205,6 @@ export const Enrollment = pgTable(
   (t) => [
     index("student_idx").on(t.studentId),
     index("program_idx").on(t.programId),
-    index("current_level_idx").on(t.currentLevelId),
     index("package_idx").on(t.meetingPackageId),
   ],
 );
@@ -242,6 +217,8 @@ export const MeetingPackage = pgTable(
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 50 }).notNull(),
     count: integer("count").notNull(),
+    price: integer("price").notNull(),
+    discount: integer("discount").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
@@ -256,7 +233,7 @@ export const Product = pgTable(
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     type: varchar("type", { length: 255 }),
-    price: integer("price"),
+    price: integer("price").notNull(),
     stockQuantity: integer("stock_quantity"),
     status: ProductStatus("status"),
     description: text("description"),
@@ -371,7 +348,6 @@ export const BookPreparationStatus = pgTable("book_preparation_status", {
   id: serial("id").primaryKey(),
   studentId: integer("student_id").references(() => Student.id),
   programId: integer("program_id").references(() => Program.id),
-  levelId: integer("level_id").references(() => ProgramLevel.id),
   prepareDate: timestamp("prepare_date", { withTimezone: true }),
   paidDate: timestamp("paid_date", { withTimezone: true }),
   status: BookStatus("status"),
@@ -415,21 +391,8 @@ export const programRelations = relations(Program, ({ many }) => ({
   enrollments: many(Enrollment),
   meetings: many(Meeting),
   bookPreparations: many(BookPreparationStatus),
-  levels: many(ProgramLevel),
   extra: many(ProgramExtra),
 }));
-
-export const programLevelRelations = relations(
-  ProgramLevel,
-  ({ many, one }) => ({
-    program: one(Program, {
-      fields: [ProgramLevel.programId],
-      references: [Program.id],
-    }),
-    enrollments: many(Enrollment),
-    bookPreparations: many(BookPreparationStatus),
-  }),
-);
 
 export const programExtraRelations = relations(ProgramExtra, ({ one }) => ({
   program: one(Program, {
@@ -446,10 +409,6 @@ export const enrollementRelations = relations(Enrollment, ({ one }) => ({
   program: one(Program, {
     fields: [Enrollment.programId],
     references: [Program.id],
-  }),
-  currentLevel: one(ProgramLevel, {
-    fields: [Enrollment.currentLevelId],
-    references: [ProgramLevel.id],
   }),
   meetingPackage: one(MeetingPackage, {
     fields: [Enrollment.meetingPackageId],
@@ -532,10 +491,6 @@ export const bookPreparationStatusRelations = relations(
     program: one(Program, {
       fields: [BookPreparationStatus.programId],
       references: [Program.id],
-    }),
-    level: one(ProgramLevel, {
-      fields: [BookPreparationStatus.levelId],
-      references: [ProgramLevel.id],
     }),
   }),
 );

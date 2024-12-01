@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { Delete, Layers3, MoreHorizontal, PenLine } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,17 +35,20 @@ export default function DropdownAction({ programId }: { programId: number }) {
             toggleSheet(PROGRAM_EXTRA_FEE_SHEET_ID + programId, true);
           }}
         >
-          Extra Fee(s)
+          <Layers3 />
+          Tambahan
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
             toggleSheet(SHEET_ID + programId, true);
           }}
         >
-          Modify Program
+          <PenLine />
+          Ubah
         </DropdownMenuItem>
         <DropdownMenuItem className="text-red-500 focus:text-red-600">
-          Delete Program
+          <Delete />
+          Hapus
         </DropdownMenuItem>
       </DropdownMenuContent>
       <FormSheet id={programId} />

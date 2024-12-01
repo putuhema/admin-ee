@@ -1,15 +1,14 @@
 import { seedMeetingPackage } from "./meeting-package";
 import { seedProudcts } from "./products";
 import { seedPrograms } from "./programs";
-import { seedProgramLevel } from "./programs-level";
 
 async function main() {
-  await Promise.all([
-    seedMeetingPackage(),
-    seedProudcts(),
-    seedPrograms(),
-    seedProgramLevel(),
-  ]);
+  try {
+    await Promise.all([seedMeetingPackage(), seedProudcts(), seedPrograms()]);
+  } catch (error) {
+    console.error("Error seeding data:", error);
+    process.exit(1);
+  }
 }
 
 main();

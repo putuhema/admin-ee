@@ -4,14 +4,13 @@ export const programSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string(),
-  pricePerMeeting: z.string(),
   extra: z
     .array(
       z.object({
         name: z.string(),
         price: z.string(),
         describe: z.string(),
-      })
+      }),
     )
     .optional(),
 });
@@ -38,16 +37,9 @@ const ProgramExtraSchema = z.object({
   price: z.coerce.number(),
 });
 
-const ProgramLevelSchema = z.object({
-  id: z.number(),
-  level: z.string(),
-});
-
 export const ProgramResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string(),
-  pricePerMeeting: z.number(),
   extra: z.array(ProgramExtraSchema),
-  levels: z.array(ProgramLevelSchema),
 });

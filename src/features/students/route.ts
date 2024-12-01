@@ -5,7 +5,6 @@ import {
   Guardian,
   MeetingPackage,
   Program,
-  ProgramLevel,
   Student,
   StudentGuardian,
 } from "@/db/schema";
@@ -145,14 +144,11 @@ const app = new Hono()
           program: Program.name,
           packageName: MeetingPackage.name,
           packageCount: MeetingPackage.count,
-          level: ProgramLevel.name,
-          meetingQty: Enrollment.meeting_qty,
+          meetingQty: Enrollment.meetingQty,
           status: Enrollment.status,
           date: Enrollment.enrollmentDate,
         })
         .from(Enrollment)
-        .leftJoin(Program, eq(Enrollment.programId, Program.id))
-        .leftJoin(ProgramLevel, eq(Enrollment.currentLevelId, ProgramLevel.id))
         .leftJoin(
           MeetingPackage,
           eq(Enrollment.meetingPackageId, MeetingPackage.id),

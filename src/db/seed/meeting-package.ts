@@ -8,14 +8,19 @@ export async function seedMeetingPackage() {
       {
         name: "4X",
         count: 4,
+        price: 50000,
       },
       {
         name: "8X",
         count: 8,
+        price: 100000,
+        discount: 10,
       },
       {
         name: "12X",
         count: 12,
+        price: 150000,
+        discount: 10,
       },
     ];
 
