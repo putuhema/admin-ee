@@ -1,7 +1,5 @@
-"use client";
-
 import { DataTable } from "@/components/data-table";
-import { useGetEnrollement } from "../hooks/use-get-enrollment";
+import { useGetEnrollement } from "../queries/use-get-enrollment";
 import { columns } from "./column";
 
 export default function Table() {

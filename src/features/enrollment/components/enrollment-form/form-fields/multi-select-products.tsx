@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -11,6 +10,8 @@ import { UseFormReturn } from "react-hook-form";
 import { EnrollmentData } from "@/features/enrollment/schema";
 import { MultiSelectCombobox } from "@/components/multi-combobox";
 import { useGetProducts } from "@/features/products/api/use-get-products";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MessageCircleWarning } from "lucide-react";
 
 interface MultiSelectProductsProps {
   form: UseFormReturn<EnrollmentData>;
@@ -19,7 +20,7 @@ interface MultiSelectProductsProps {
 export default function MultiSelectProducts({
   form,
 }: MultiSelectProductsProps) {
-  const { data: products } = useGetProducts();
+  const { data: products, isLoading } = useGetProducts();
 
   const productsMemo = React.useMemo(() => {
     return (
@@ -50,6 +51,31 @@ export default function MultiSelectProducts({
 
     return `${values.length} selected`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="w-16 h-4" />
+        <Skeleton className="w-full h-10" />
+      </div>
+    );
+  }
+
+  if (!products || !productsMemo) {
+    return (
+      <div className="text-sm text-red-500 flex items-center gap-2">
+        <MessageCircleWarning />
+        <div>
+          <p className="text-wrap">
+            Belum ada program tambahan untuk program ini.
+          </p>
+          <p className="text-xs text-red-400">
+            Hubungi admin untuk menambahkan program.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <FormField

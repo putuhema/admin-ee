@@ -4,7 +4,8 @@ import * as React from "react";
 import { useIsClient } from "@uidotdev/usehooks";
 
 import { UpdateStudentSheet } from "@/features/students/components/update-student/update-student-sheet";
-import { NewStudentSheet } from "@/features/students/components/add-student/new-student-task";
+import { NewStudentSheet } from "@/features/students/components/add-student/new-student-sheet";
+import { NewEnrollmentSheet } from "@/features/enrollment/components/add-enrollement/new-enrollment-sheet";
 
 export default function SheetProvider() {
   const isClient = useIsClient();
@@ -17,6 +18,7 @@ export default function SheetProvider() {
     <div role="region" aria-label="Admin EE Dashboard">
       <NewStudentSheet />
       <UpdateStudentSheet />
+      <NewEnrollmentSheet />
     </div>
   );
 }

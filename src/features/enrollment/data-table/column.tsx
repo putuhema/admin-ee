@@ -1,9 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-
 import { CreditCard, Delete, LetterText, MoreHorizontal } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type EnrollementType } from "../hooks/use-get-enrollment";
+import { type EnrollementType } from "../queries/use-get-enrollment";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -46,14 +44,14 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     id: "name",
     accessorKey: "student.name",
     header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title="Name" />;
+      return <DataTableColumnHeader column={column} title="Name Siswa" />;
     },
     cell: ({ row }) => {
       return <span>{row.original.student?.name}</span>;
     },
   },
   {
-    header: "Packages (Qty)",
+    header: "Paket diambil (Qty)",
     cell: ({ row }) => {
       const packages = row.original.packages!;
       return (
@@ -65,14 +63,10 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
   },
   {
     id: "program",
-    header: () => <div className="text-center">Program (Level)</div>,
+    header: () => <div className="text-center">Program</div>,
     cell: ({ row }) => {
-      const { name, level } = row.original.program!;
-      return (
-        <span className="capitalize">
-          {name} ({level})
-        </span>
-      );
+      const { name } = row.original.program!;
+      return <span className="capitalize">{name}</span>;
     },
   },
   {
@@ -85,7 +79,7 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     },
   },
   {
-    header: "Fee",
+    header: "Biaya",
     cell: ({ row }) => {
       return <span>{formatCurrency(row.original.orders?.amount ?? 0)}</span>;
     },
@@ -94,7 +88,9 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     id: "status",
     accessorKey: "orders.status",
     header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title="Payment Status" />;
+      return (
+        <DataTableColumnHeader column={column} title="Status Pembayaran" />
+      );
     },
     cell: ({ row }) => {
       return <span className="uppercase">{row.original.orders?.status}</span>;
@@ -105,7 +101,7 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     id: "enrollmentDate",
     accessorKey: "enrollment.enrollmentDate",
     header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title="Date" />;
+      return <DataTableColumnHeader column={column} title="Tanggal Masuk" />;
     },
     cell: ({ row }) => {
       const enrollmentDate = row.original.enrollment.enrollmentDate;

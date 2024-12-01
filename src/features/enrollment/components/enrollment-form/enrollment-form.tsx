@@ -18,7 +18,7 @@ import SelectQuantity from "./form-fields/select-quantity";
 import MultiSelectExtras from "./form-fields/multi-select-extras";
 import MultiSelectProducts from "./form-fields/multi-select-products";
 import Notes from "./form-fields/notes";
-import { usePostEnrollment } from "../../hooks/use-post-enrollment";
+import { usePostEnrollment } from "../../queries/use-post-enrollment";
 
 export default function EnrollmentForm() {
   const mutation = usePostEnrollment();

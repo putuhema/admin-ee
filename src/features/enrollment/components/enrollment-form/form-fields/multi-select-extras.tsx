@@ -62,13 +62,13 @@ export default function MultiSelectExtras({
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="w-8 h-4" />
+        <Skeleton className="w-12 h-4" />
         <Skeleton className="w-full h-10" />
       </div>
     );
   }
 
-  if (!programExtra) {
+  if (!programExtra || !extras) {
     return (
       <div className="text-sm text-red-500 flex items-center gap-2">
         <MessageCircleWarning />
@@ -94,7 +94,7 @@ export default function MultiSelectExtras({
           <FormControl>
             <MultiSelectCombobox
               label="Tambahan"
-              options={extras!}
+              options={extras}
               value={field.value}
               onChange={field.onChange}
               renderItem={(option) => (
@@ -106,9 +106,9 @@ export default function MultiSelectExtras({
                 </div>
               )}
               renderSelectedItem={() =>
-                handleRenderSelectedItem(field.value, extras!, 4)
+                handleRenderSelectedItem(field.value, extras, 4)
               }
-              aria-label="Filter by program type"
+              aria-label="Filter by extra type"
               aria-required="false"
               aria-multiselectable="true"
             />
