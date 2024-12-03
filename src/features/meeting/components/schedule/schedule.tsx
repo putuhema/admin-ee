@@ -66,7 +66,7 @@ export function Schedules() {
         className="w-full lg:max-w-4xl lg:mx-auto relative space-y-8 p-8"
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Tutoring Schedule</h1>
+          <h1 className="text-2xl font-bold">Jadwal Les Bimbel</h1>
           <p>{format(new Date(), "EEEE, dd MMMM yyy", { locale: id })}</p>
         </div>
         <div

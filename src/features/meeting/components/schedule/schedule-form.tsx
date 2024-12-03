@@ -87,7 +87,7 @@ export function ScheduleForm() {
 
   const students = React.useMemo(() => {
     if (!studentsData) return [];
-    return studentsData.map((student) => ({
+    return studentsData.students.map((student) => ({
       label: student.name,
       value: student.id.toString(),
     }));
@@ -165,7 +165,7 @@ export function ScheduleForm() {
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="space-y-2">
-            <p className="text-sm">Pick A Date</p>
+            <p className="text-sm">Pilih Tanggal</p>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -193,7 +193,7 @@ export function ScheduleForm() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm">Session</p>
+            <p className="text-sm">Pilih Sesi</p>
             <Select
               onValueChange={(value) => {
                 setSession(value);
@@ -222,7 +222,7 @@ export function ScheduleForm() {
           name="studentId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Student</FormLabel>
+              <FormLabel>Murid</FormLabel>
               <MultiSelectCombobox
                 label="student"
                 options={students}
