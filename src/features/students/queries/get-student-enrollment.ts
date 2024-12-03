@@ -8,15 +8,14 @@ export async function getStudentEnrollment(studentId: number) {
   if (!res.ok) {
     throw new Error("Error fetching student enrollment");
   }
-  return await res.json();
+  const data = await res.json();
+  return data;
 }
 
 export function useGetStudentEnrollment(studentId: number) {
-  const query = useQuery({
+  return useQuery({
     queryKey: ["student-enrollment", studentId],
     queryFn: () => getStudentEnrollment(studentId),
     enabled: !!studentId && !isNaN(studentId),
   });
-
-  return query;
 }

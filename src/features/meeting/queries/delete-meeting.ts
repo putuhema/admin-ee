@@ -19,6 +19,7 @@ export function useDeleteMeeting() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
   });
 

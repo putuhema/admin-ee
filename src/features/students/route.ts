@@ -116,9 +116,11 @@ const app = new Hono()
     async (c) => {
       const { name } = c.req.valid("query");
 
-      const query = db.select().from(Student).limit(10);
+      const query = db.select().from(Student);
       if (name) {
-        query.where(ilike(Student.name, `%${name}%`));
+        query.where(
+          sql`lower(${Student.name}) like ${`%${name.toLowerCase()}%`} OR lower(${Student.nickname}) like ${`%${name.toLowerCase()}%`}`,
+        );
       }
 
       const students = await query;
@@ -141,7 +143,7 @@ const app = new Hono()
         .select({
           id: Enrollment.id,
           studentId: Enrollment.studentId,
-          program: Program.name,
+          programName: Program.name,
           packageName: MeetingPackage.name,
           packageCount: MeetingPackage.count,
           meetingQty: Enrollment.meetingQty,
@@ -153,6 +155,7 @@ const app = new Hono()
           MeetingPackage,
           eq(Enrollment.meetingPackageId, MeetingPackage.id),
         )
+        .leftJoin(Program, eq(Enrollment.programId, Program.id))
         .where(and(eq(Enrollment.studentId, studentId)));
 
       if (enrollment.length === 0) {

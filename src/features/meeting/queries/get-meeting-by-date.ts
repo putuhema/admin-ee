@@ -7,7 +7,7 @@ export type MeetingDateResponse = InferResponseType<typeof $get, 200>;
 
 export function useGetMeetingByDate(date: Date | undefined) {
   const query = useQuery<MeetingDateResponse, Error>({
-    queryKey: ["meeting/date", date],
+    queryKey: ["meetings", date],
     queryFn: async () => {
       const res = await $get({
         param: {

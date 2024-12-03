@@ -29,7 +29,7 @@ export default function StudentEnrollmentPage() {
       {student.map((se) => (
         <div key={se.id}>
           <div className="flex items-center gap-2">
-            <p className="text-xl uppercase">{se.program}</p>
+            <p className="text-xl uppercase">{se.programName}</p>
             <p className="text-sm">
               {se.packageCount! * se.meetingQty} meetings left
             </p>

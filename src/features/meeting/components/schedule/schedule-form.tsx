@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { usePostSchedule } from "@/features/meeting/queries/post-meeting";
+import { fi } from "date-fns/locale";
 
 export function ScheduleForm() {
   const form = useForm<MeetingType>({
@@ -51,7 +52,8 @@ export function ScheduleForm() {
   const [session, setSession] = React.useState("");
   const [date, setDate] = React.useState(new Date());
   const { data: programs, isLoading } = useGetPrograms();
-  const { data: studentsData, isLoading: isStudentsLoading } = useGetStudents();
+  const { data: studentsData, isLoading: isStudentsLoading } =
+    useGetStudents(100);
 
   React.useEffect(() => {
     if (programs) {
