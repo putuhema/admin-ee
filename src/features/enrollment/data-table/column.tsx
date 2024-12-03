@@ -1,21 +1,12 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { CreditCard, Delete, LetterText, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { type EnrollementType } from "../queries/use-get-enrollment";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import EnrollmentTableActions from "@/features/enrollment/components/table-action";
 
 export const columns: ColumnDef<EnrollementType[number]>[] = [
   {
@@ -110,31 +101,8 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
   },
   {
     id: "actions",
-    cell: () => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LetterText /> Details
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <CreditCard /> Payment
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Delete />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    cell: ({ row }) => {
+      return <EnrollmentTableActions id={row.original.enrollment.id!} />;
     },
   },
 ];

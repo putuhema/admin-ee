@@ -17,6 +17,7 @@ import { Hono } from "hono";
 import { eq, inArray } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { enrollmentSchema } from "./schema";
+import { z } from "zod";
 
 const app = new Hono()
   .get("/", async (c) => {
@@ -59,6 +60,103 @@ const app = new Hono()
 
     return c.json(enrollments);
   })
+  .get(
+    "/:enrollmentId",
+    zValidator(
+      "param",
+      z.object({
+        enrollmentId: z.coerce.number(),
+      }),
+    ),
+    async (c) => {
+      try {
+        const { enrollmentId } = c.req.valid("param");
+
+        const enrollment = await db.transaction(async (tx) => {
+          const enrollment = await tx
+            .select({
+              enrollmentId: Enrollment.id,
+              enrollmentDate: Enrollment.enrollmentDate,
+              enrollmentStatus: Enrollment.status,
+              enrollmentQty: Enrollment.meetingQty,
+              enrollmentNotes: Enrollment.notes,
+              studentId: Student.id,
+              studentName: Student.name,
+              programId: Program.id,
+              prograName: Program.name,
+              orderId: Order.id,
+              orderStatus: Order.status,
+              orderAmount: Order.totalAmount,
+              packageId: MeetingPackage.id,
+              packageName: MeetingPackage.name,
+              packageCount: MeetingPackage.count,
+              packageDiscount: MeetingPackage.discount,
+              packagePrice: MeetingPackage.price,
+              paymentDate: Payment.paymentDate,
+              paymentStatus: Payment.status,
+            })
+            .from(Enrollment)
+            .leftJoin(Student, eq(Enrollment.studentId, Student.id))
+            .leftJoin(Program, eq(Enrollment.programId, Program.id))
+            .leftJoin(Order, eq(Enrollment.orderId, Order.id))
+            .leftJoin(Payment, eq(Enrollment.orderId, Payment.orderId))
+            .leftJoin(
+              MeetingPackage,
+              eq(Enrollment.meetingPackageId, MeetingPackage.id),
+            )
+            .where(eq(Enrollment.id, enrollmentId))
+            .limit(1);
+
+          if (enrollment.length === 0) {
+            return null;
+          }
+
+          const orderDetails = await tx
+            .select({
+              id: OrderDetail.id,
+              orderId: OrderDetail.orderId,
+              price: OrderDetail.price,
+              quantity: OrderDetail.quantity,
+              date: OrderDetail.createdAt,
+              productName: Product.name,
+              productPrice: Product.price,
+              extraName: ProgramExtra.type,
+              extraPrice: ProgramExtra.price,
+              packageName: MeetingPackage.name,
+              packagePrice: MeetingPackage.price,
+              programName: Program.name,
+            })
+            .from(OrderDetail)
+            .leftJoin(Product, eq(OrderDetail.productId, Product.id))
+            .leftJoin(Program, eq(OrderDetail.programId, Program.id))
+            .leftJoin(
+              MeetingPackage,
+              eq(OrderDetail.packageId, MeetingPackage.id),
+            )
+            .leftJoin(ProgramExtra, eq(OrderDetail.extraId, ProgramExtra.id))
+            .where(eq(OrderDetail.orderId, enrollment[0].orderId!));
+
+          if (orderDetails.length === 0) {
+            null;
+          }
+
+          return {
+            ...enrollment[0],
+            orderDetails: orderDetails,
+          };
+        });
+
+        if (!enrollment) {
+          return c.json({ message: "Enrollment not found" }, 404);
+        }
+
+        return c.json(enrollment);
+      } catch (error) {
+        console.error(error);
+        return c.json({ message: error }, 500);
+      }
+    },
+  )
   .post("/", zValidator("json", enrollmentSchema), async (c) => {
     const enrollment = c.req.valid("json");
 
@@ -109,7 +207,7 @@ const app = new Hono()
         .where(inArray(Product.id, enrollment.products.map(Number)));
 
       let totalAmount =
-        (choosePackage[0].price +
+        (choosePackage[0].price -
           choosePackage[0].price * (choosePackage[0].discount / 100)) *
         enrollment.quantity;
 
@@ -117,13 +215,12 @@ const app = new Hono()
         (acc, extra) => acc + extra.price,
         0,
       );
-      totalAmount += extrasTotalAmount;
 
       const productsTotalAmount = programProducts.reduce(
         (acc, product) => acc + product.price,
         0,
       );
-      totalAmount += productsTotalAmount;
+      totalAmount += extrasTotalAmount + productsTotalAmount;
 
       const order = await tx
         .insert(Order)
@@ -152,8 +249,7 @@ const app = new Hono()
             return {
               orderId: order[0].id,
               programId: program[0].id,
-              packageId: Number(enrollment.packages),
-              quantity: enrollment.quantity,
+              quantity: 1,
               extraId: Number(extraId),
               price: extra?.price ?? 0,
             };
@@ -164,14 +260,13 @@ const app = new Hono()
       if (enrollment.products.length > 0) {
         orderDetailsValues.push(
           ...enrollment.products.map((productId) => {
-            const product = programExtras.find(
+            const product = programProducts.find(
               (p) => p.id === Number(productId),
             );
             return {
               orderId: order[0].id,
               programId: program[0].id,
-              packageId: Number(enrollment.packages),
-              quantity: enrollment.quantity,
+              quantity: 1,
               productId: Number(productId),
               price: product?.price ?? 0,
             };
@@ -186,7 +281,6 @@ const app = new Hono()
       await tx.insert(Payment).values({
         purpose: "enrollment",
         orderId: order[0].id,
-        paymentDate: new Date(),
         amount: order[0].totalAmount,
         status: "pending",
       });
@@ -225,5 +319,4 @@ const app = new Hono()
 
     return c.json(newEnrollment, 201);
   });
-
 export default app;

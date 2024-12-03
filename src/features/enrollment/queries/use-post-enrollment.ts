@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { toast } from "sonner";
 
-const $post = client["api"]["enrollement"]["$post"];
+const $post = client["api"]["enrollments"]["$post"];
 type Request = InferRequestType<typeof $post>["json"];
 type Response = InferResponseType<typeof $post>;
 

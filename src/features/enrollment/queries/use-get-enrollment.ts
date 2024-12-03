@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 
 export type EnrollementType = InferResponseType<
-  typeof client.api.enrollement.$get
+  typeof client.api.enrollments.$get
 >;
 
 export const getEnrollment = async () => {
-  const res = await client.api.enrollement.$get();
+  const res = await client.api.enrollments.$get();
   const data = await res.json();
   return data;
 };
