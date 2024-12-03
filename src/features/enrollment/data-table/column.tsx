@@ -1,14 +1,14 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { type EnrollementType } from "../queries/use-get-enrollment";
+import { type EnrollementData } from "../queries/use-get-enrollment";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import EnrollmentTableActions from "@/features/enrollment/components/table-action";
 
-export const columns: ColumnDef<EnrollementType[number]>[] = [
+export const columns: ColumnDef<EnrollementData[number]>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -38,16 +38,15 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
       return <DataTableColumnHeader column={column} title="Name Siswa" />;
     },
     cell: ({ row }) => {
-      return <span>{row.original.student?.name}</span>;
+      return <span>{row.original.studentName}</span>;
     },
   },
   {
     header: "Paket diambil (Qty)",
     cell: ({ row }) => {
-      const packages = row.original.packages!;
       return (
         <p className="text-center">
-          {packages.name} ({row.original.enrollment.qty})
+          {row.original.pacakgeName} ({row.original.enrollmentQty})
         </p>
       );
     },
@@ -56,8 +55,7 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
     id: "program",
     header: () => <div className="text-center">Program</div>,
     cell: ({ row }) => {
-      const { name } = row.original.program!;
-      return <span className="capitalize">{name}</span>;
+      return <span className="capitalize">{row.original.programName}</span>;
     },
   },
   {
@@ -66,13 +64,13 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
       return <DataTableColumnHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      return <span>{row.original.enrollment.status}</span>;
+      return <span>{row.original.enrollmentStatus}</span>;
     },
   },
   {
     header: "Biaya",
     cell: ({ row }) => {
-      return <span>{formatCurrency(row.original.orders?.amount ?? 0)}</span>;
+      return <span>{formatCurrency(row.original.orderAmount ?? 0)}</span>;
     },
   },
   {
@@ -84,7 +82,7 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
       );
     },
     cell: ({ row }) => {
-      return <span className="uppercase">{row.original.orders?.status}</span>;
+      return <span className="uppercase">{row.original.orderStatus}</span>;
     },
   },
 
@@ -95,14 +93,15 @@ export const columns: ColumnDef<EnrollementType[number]>[] = [
       return <DataTableColumnHeader column={column} title="Tanggal Masuk" />;
     },
     cell: ({ row }) => {
-      const enrollmentDate = row.original.enrollment.enrollmentDate;
-      return <span>{format(new Date(enrollmentDate!), "PPP")}</span>;
+      return (
+        <span>{format(new Date(row.original.enrollmentDate!), "PPP")}</span>
+      );
     },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      return <EnrollmentTableActions id={row.original.enrollment.id!} />;
+      return <EnrollmentTableActions id={row.original.enrollmentId!} />;
     },
   },
 ];

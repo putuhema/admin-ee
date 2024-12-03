@@ -2,7 +2,7 @@ import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 
-export type EnrollementType = InferResponseType<
+export type EnrollementData = InferResponseType<
   typeof client.api.enrollments.$get
 >;
 
@@ -13,7 +13,7 @@ export const getEnrollment = async () => {
 };
 
 export const useGetEnrollement = () => {
-  const query = useQuery<EnrollementType>({
+  const query = useQuery<EnrollementData>({
     queryKey: ["enrollments"],
     queryFn: getEnrollment,
   });

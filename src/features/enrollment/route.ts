@@ -23,30 +23,20 @@ const app = new Hono()
   .get("/", async (c) => {
     const enrollments = await db
       .select({
-        enrollment: {
-          id: Enrollment.id,
-          enrollmentDate: Enrollment.enrollmentDate,
-          status: Enrollment.status,
-          qty: Enrollment.meetingQty,
-        },
-        student: {
-          id: Student.id,
-          name: Student.name,
-        },
-        program: {
-          id: Program.id,
-          name: Program.name,
-        },
-        orders: {
-          id: Order.id,
-          status: Order.status,
-          amount: Order.totalAmount,
-        },
-        packages: {
-          id: MeetingPackage.id,
-          name: MeetingPackage.name,
-          count: MeetingPackage.count,
-        },
+        enrollmentId: Enrollment.id,
+        enrollmentDate: Enrollment.enrollmentDate,
+        enrollmentStatus: Enrollment.status,
+        enrollmentQty: Enrollment.meetingQty,
+        studentId: Student.id,
+        studentName: Student.name,
+        programId: Program.id,
+        programName: Program.name,
+        orderId: Order.id,
+        orderStatus: Order.status,
+        orderAmount: Order.totalAmount,
+        pacakgeId: MeetingPackage.id,
+        pacakgeName: MeetingPackage.name,
+        pacakgeCount: MeetingPackage.count,
       })
       .from(Enrollment)
       .leftJoin(Student, eq(Enrollment.studentId, Student.id))
@@ -318,5 +308,33 @@ const app = new Hono()
     });
 
     return c.json(newEnrollment, 201);
-  });
+  })
+  .delete(
+    "/:enrollmentId",
+    zValidator(
+      "param",
+      z.object({
+        enrollmentId: z.coerce.number(),
+      }),
+    ),
+    async (c) => {
+      const { enrollmentId } = c.req.valid("param");
+
+      const deleted = await db.transaction(async (tx) => {
+        const enrollment = await tx
+          .select()
+          .from(Enrollment)
+          .where(eq(Enrollment.id, enrollmentId))
+          .limit(1);
+        if (enrollment.length === 0) {
+          return null;
+        }
+
+        await tx.delete(Enrollment).where(eq(Enrollment.id, enrollmentId));
+        return enrollment[0];
+      });
+
+      return c.json(deleted);
+    },
+  );
 export default app;
