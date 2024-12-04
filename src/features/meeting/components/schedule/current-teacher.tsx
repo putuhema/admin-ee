@@ -15,7 +15,7 @@ export default function CurrentTeacher({
     inprogress: "sedang",
     completed: "selesai",
     scheduled: "akan",
-    canceled: "dibatalkan",
+    cancelled: "dibatalkan",
     postponed: "ditunda",
   } as const;
   return (
