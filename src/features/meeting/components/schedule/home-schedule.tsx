@@ -12,6 +12,7 @@ import ClaimButton from "./claim-button";
 import CurrentTeacher from "./current-teacher";
 import { cn } from "@/lib/utils";
 import { BadgeCheck } from "lucide-react";
+import HomeScheduleSkeleton from "./home-schedule-skeleton";
 
 export default function Schedule() {
   const [currentId, setCurrentId] = React.useState<number | null>(null);
@@ -49,7 +50,7 @@ export default function Schedule() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <HomeScheduleSkeleton />;
   }
 
   if (!meetings) {
