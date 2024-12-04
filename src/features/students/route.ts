@@ -243,9 +243,6 @@ const app = new Hono()
     try {
       const studentId = c.req.param("studentId");
       const studentData = c.req.valid("json");
-
-      console.log({ studentId, studentData });
-
       const [student] = await db
         .update(Student)
         .set(studentData)
@@ -273,7 +270,6 @@ const app = new Hono()
     async (c) => {
       try {
         const studentId = Number(c.req.valid("param").studentId);
-        console.log({ studentId });
 
         const [student] = await db
           .update(Student)

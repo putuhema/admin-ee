@@ -20,6 +20,8 @@ import {
 
 import { z } from "zod";
 import { asc, between, eq, sql } from "drizzle-orm";
+import { Variables } from "@/app/api/[[...route]]/route";
+import { supabase } from "@/lib/supabase";
 
 const PROGRAM_MAPPING = {
   abama: "Abama/Calistung",
@@ -34,7 +36,7 @@ const PROGRAM_MAPPING = {
   private: "Private",
 } as const;
 
-const app = new Hono()
+const app = new Hono<Variables>()
   .get("/", async (c) => {
     try {
       const sqlDate = sql`DATE(${Meeting.startTime})`;
@@ -162,6 +164,7 @@ const app = new Hono()
           endTime: Meeting.endTime,
           location: Meeting.location,
           status: Meeting.status,
+          meetingSessionStatus: MeetingSession.status,
           type: Meeting.type,
           attendance: MeetingSession.studentAttendance,
           tutorId: MeetingSession.tutorId,
@@ -226,7 +229,7 @@ const app = new Hono()
       tutorId: validatedSession.teacherId,
       studentAttendance: true,
       status: "completed",
-      chekcInTime: validatedSession.checkInTime,
+      checkInTime: validatedSession.checkInTime,
       checkOutTime: validatedSession.checkOutTime,
       duration: validatedSession.duration,
     };
@@ -242,6 +245,52 @@ const app = new Hono()
 
     return c.json(meetingSessions, 201);
   })
+  .post(
+    "/claim-session",
+    zValidator("json", z.object({ meetingId: z.coerce.number() })),
+    async (c) => {
+      const logginUser = c.get("user");
+
+      if (!logginUser) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+
+      const { meetingId } = c.req.valid("json");
+      const channel = supabase.channel("meeting-claimed");
+
+      channel.subscribe((status) => {
+        if (status !== "SUBSCRIBED") {
+          return null;
+        }
+
+        channel.send({
+          type: "broadcast",
+          event: "meeting-claimed",
+          payload: {},
+        });
+      });
+
+      const claimedMeeting = await db
+        .select()
+        .from(Meeting)
+        .where(eq(Meeting.id, meetingId))
+        .limit(1);
+
+      if (claimedMeeting.length === 0) {
+        return c.json({ error: "Meeting not found" }, 404);
+      }
+
+      await db.insert(MeetingSession).values({
+        meetingId: meetingId,
+        tutorId: logginUser.id,
+        checkInTime: new Date(),
+        status: "inprogress",
+        studentAttendance: true,
+      });
+
+      return c.json({ message: "Meeting claimed" });
+    },
+  )
   .delete(
     "/",
     zValidator("json", z.object({ id: z.coerce.number() })),

@@ -14,10 +14,13 @@ const mainNav = [
     title: "Payment",
     link: "/payment",
   },
+  {
+    title: "Schedule",
+    link: "/schedule",
+  },
 ];
 
 export default async function MainNav() {
-
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -35,7 +38,7 @@ export default async function MainNav() {
             </Link>
           ))}
         </ul>
-        <UserButton  user={session.user as unknown as  UserType}/>
+        <UserButton user={session.user as unknown as UserType} />
       </nav>
     </div>
   );

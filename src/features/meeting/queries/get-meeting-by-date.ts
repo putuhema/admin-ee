@@ -1,13 +1,14 @@
 import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { InferResponseType } from "hono";
 
 const $get = client.api.meetings.date[":date"]["$get"];
-export type MeetingDateResponse = InferResponseType<typeof $get, 200>;
+export type MeetingDateData = InferResponseType<typeof $get, 200>;
 
 export function useGetMeetingByDate(date: Date | undefined) {
-  const query = useQuery<MeetingDateResponse, Error>({
-    queryKey: ["meetings", date],
+  const query = useQuery<MeetingDateData, Error>({
+    queryKey: ["meetings", format(date!, "yyyy-MM-dd")],
     queryFn: async () => {
       const res = await $get({
         param: {
@@ -21,6 +22,7 @@ export function useGetMeetingByDate(date: Date | undefined) {
       return await res.json();
     },
     enabled: !!date,
+    refetchOnWindowFocus: true,
   });
 
   return query;

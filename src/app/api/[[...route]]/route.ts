@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
+import { auth } from "@/lib/auth";
 
 import students from "@/features/students/route";
 import programs from "@/features/programs/route";
@@ -10,7 +11,28 @@ import meetings from "@/features/meeting/route";
 import teachers from "@/features/teachers/route";
 import payments from "@/features/payments/route";
 
-const app = new Hono().basePath("/api");
+export type Variables = {
+  Variables: {
+    user: typeof auth.$Infer.Session.user | null;
+    session: typeof auth.$Infer.Session.session | null;
+  };
+};
+
+const app = new Hono<Variables>().basePath("/api");
+
+app.use("*", async (c, next) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+
+  if (!session) {
+    c.set("user", null);
+    c.set("session", null);
+    return await next();
+  }
+
+  c.set("user", session.user);
+  c.set("session", session.session);
+  return await next();
+});
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = app

@@ -292,8 +292,10 @@ export const Payment = pgTable("payment", {
 
 export const MeetingStatus = pgEnum("meeting_status", [
   "scheduled",
+  "inprogress",
   "completed",
   "cancelled",
+  "postponed",
 ]);
 
 export const MeetingType = pgEnum("meeting_type", ["scheduled", "walk-in"]);
