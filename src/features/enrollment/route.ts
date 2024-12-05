@@ -2,7 +2,6 @@ import { db } from "@/db";
 import {
   Enrollment,
   EnrollmentInsert,
-  Meeting,
   MeetingPackage,
   Order,
   OrderDetail,
@@ -15,7 +14,7 @@ import {
   Student,
 } from "@/db/schema";
 import { Hono } from "hono";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { enrollmentSchema } from "./schema";
 import { z } from "zod";
@@ -163,7 +162,7 @@ const app = new Hono()
           MeetingPackage,
           eq(Enrollment.meetingPackageId, MeetingPackage.id),
         )
-        .where(eq(Enrollment.programId, programId));
+        .where(and(eq(Enrollment.programId, programId)));
 
       if (enrollmentPrograms.length === 0) {
         return c.json({ message: "Enrollment Not found" }, 404);

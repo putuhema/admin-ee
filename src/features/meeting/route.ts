@@ -21,7 +21,7 @@ import {
 } from "@/db/schema";
 
 import { z } from "zod";
-import { and, asc, between, eq, sql } from "drizzle-orm";
+import { and, asc, between, eq, SQL, sql } from "drizzle-orm";
 import { Variables } from "@/app/api/[[...route]]/route";
 import { supabase } from "@/lib/supabase";
 
@@ -192,8 +192,16 @@ const app = new Hono<Variables>()
         studentId: z.coerce.number().int().positive(),
       }),
     ),
+    zValidator(
+      "query",
+      z.object({
+        month: z.coerce.number().int().min(1).max(12).optional(),
+        year: z.coerce.number().int().min(2021).optional(),
+      }),
+    ),
     async (c) => {
       const { programId, studentId } = c.req.valid("param");
+      const { month, year } = c.req.valid("query");
 
       const meetings = await db.transaction(async (tx) => {
         const enrollmentDetails = await tx
@@ -219,8 +227,9 @@ const app = new Hono<Variables>()
         }
 
         const packageCount = enrollmentDetails[0].count ?? 0;
+        const whereClause: SQL[] = [];
 
-        const actualMeetings = await tx
+        let meetingQuery = tx
           .select({
             tutorId: user.id,
             tutorName: user.name,
@@ -231,10 +240,27 @@ const app = new Hono<Variables>()
           .from(Meeting)
           .leftJoin(MeetingSession, eq(Meeting.id, MeetingSession.meetingId))
           .leftJoin(user, eq(MeetingSession.tutorId, user.id))
-          .leftJoin(Student, eq(Meeting.studentId, Student.id))
-          .where(
-            and(eq(Meeting.programId, programId), eq(Student.id, studentId)),
-          )
+          .leftJoin(Student, eq(Meeting.studentId, Student.id));
+
+        whereClause.push(
+          eq(Meeting.programId, programId),
+          eq(Student.id, studentId),
+        );
+
+        if (month !== undefined) {
+          whereClause.push(
+            sql`extract(month from ${MeetingSession.checkInTime}) = ${month}`,
+          );
+        }
+
+        if (year !== undefined) {
+          whereClause.push(
+            sql`extract(year from ${MeetingSession.checkInTime}) = ${year}`,
+          );
+        }
+
+        const actualMeetings = await meetingQuery
+          .where(and(...whereClause))
           .orderBy(asc(MeetingSession.checkInTime))
           .execute();
 
@@ -250,15 +276,17 @@ const app = new Hono<Variables>()
             },
         );
       });
+
       const count = meetings.length;
       const attendance = meetings.filter(
         (meeting) => meeting.attendance,
       ).length;
+
       return c.json({
         count,
         attendance,
         meetings,
-        attendanceRate: Math.round((attendance / count) * 100),
+        attendanceRate: count > 0 ? Math.round((attendance / count) * 100) : 0,
       });
     },
   )

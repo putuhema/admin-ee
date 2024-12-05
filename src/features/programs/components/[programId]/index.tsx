@@ -2,36 +2,40 @@
 
 import React from "react";
 
-import { Button } from "@/components/ui/button";
 import MeetingTracker from "./meeting-tracker";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useGetEnrollmentProgram } from "@/features/enrollment/queries/get-enrollment-by-program";
+import MonthYearPicker from "./month-year-picker";
 import MeetingProgramSkeleton from "./meeting-program-skeleton";
+import { useGetEnrollmentProgram } from "@/features/enrollment/queries/get-enrollment-by-program";
 
-interface MeetingProgramProps {
-  programId: string;
-}
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useParams } from "next/navigation";
 
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+export default function MeetingProgramPage() {
+  const { programId } = useParams();
 
-export default function MeetingProgramPage({ programId }: MeetingProgramProps) {
+  const [monthYear, setMonthYear] = React.useState({
+    month: new Date().getMonth(),
+    year: new Date().getFullYear(),
+  });
+
   const { data: programs, isLoading } = useGetEnrollmentProgram(
     Number(programId),
   );
+
+  const handleMonthYearChange = (month?: number, year?: number) => {
+    setMonthYear({
+      ...monthYear,
+      month: month ?? monthYear.month,
+      year: year ?? monthYear.year,
+    });
+  };
 
   if (isLoading) {
     return <MeetingProgramSkeleton />;
@@ -47,46 +51,32 @@ export default function MeetingProgramPage({ programId }: MeetingProgramProps) {
     <section className="space-y-4">
       <div className="inline-flex justify-between items-center w-full">
         <h1 className="uppercase">{programs[0].program!.name}</h1>
-        <div className="inline-flex items-center gap-2">
-          <Button variant="outline">
-            <ChevronLeft />
-          </Button>
-          <p>{monthNames[new Date().getMonth()]}</p>
-          <Button variant="outline">
-            <ChevronRight />
-          </Button>
-        </div>
+        <MonthYearPicker handleMonthYearChange={handleMonthYearChange} />
       </div>
-      <div>
-        <div
-          role="table"
-          className="flex w-full  rounded-md py-2 uppercase font-bold border-b"
-        >
-          <div className="p-2">#</div>
-          <div className="w-52 p-2">Nama Murid</div>
-          <div className="p-2 flex-1">Kehadiran</div>
-        </div>
-        <div className="w-full">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[80px]">#</TableHead>
+            <TableHead>Nama Murid</TableHead>
+            <TableHead>Kehadiran</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {programs.map((p, idx) => (
-            <div
-              key={p.enrollment.id}
-              className={cn(
-                "flex w-full bg-background rounded-md",
-                idx % 2 !== 0 && "bg-secondary",
-              )}
-            >
-              <div className="p-2">{idx + 1}</div>
-              <div className="w-52 p-2">{p.student?.name}</div>
-              <div className="p-2 flex-1">
+            <TableRow key={p.enrollment.id}>
+              <TableCell className="font-medium">{idx + 1}</TableCell>
+              <TableCell>{p.student?.name}</TableCell>
+              <TableCell>
                 <MeetingTracker
+                  monthYear={monthYear}
                   programId={p.program?.id}
                   studentId={p.student?.id}
                 />
-              </div>
-            </div>
+              </TableCell>
+            </TableRow>
           ))}
-        </div>
-      </div>
+        </TableBody>
+      </Table>
     </section>
   );
 }

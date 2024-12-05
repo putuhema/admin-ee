@@ -9,17 +9,7 @@ import {
   StudentGuardian,
 } from "@/db/schema";
 import { Hono } from "hono";
-import {
-  and,
-  AnyColumn,
-  asc,
-  desc,
-  eq,
-  ilike,
-  inArray,
-  sql,
-  SQL,
-} from "drizzle-orm";
+import { and, AnyColumn, asc, desc, eq, inArray, sql, SQL } from "drizzle-orm";
 import { z } from "zod";
 import { studentGuardianSchema, studentSchema } from "./schema";
 
@@ -309,8 +299,6 @@ const app = new Hono()
         isPrimary: validatedData.isPrimary,
         relationship: validatedData.relationship,
       });
-
-      console.log("successfully added guardian");
 
       return guardian[0];
     });

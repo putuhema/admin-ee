@@ -6,20 +6,41 @@ const $get =
   client.api.meetings.programs[":programId"]["students"][":studentId"]["$get"];
 export type MeetingData = InferResponseType<typeof $get, 200>;
 
-export function useGetMeetingByProgramsStudents({
-  programId,
-  studentId,
-}: {
+type Params = {
+  monthYear?:
+    | {
+        month: number;
+        year: number;
+      }
+    | undefined;
   programId: number | undefined;
   studentId: number | undefined;
-}) {
+};
+
+export function useGetMeetingByProgramsStudents({
+  monthYear,
+  programId,
+  studentId,
+}: Params) {
   return useQuery<MeetingData, Error>({
-    queryKey: ["meetings", "programs", programId, "students", studentId],
+    queryKey: [
+      "meetings",
+      "programs",
+      programId,
+      "students",
+      studentId,
+      monthYear?.month,
+      monthYear?.year,
+    ],
     queryFn: async () => {
       const res = await $get({
         param: {
           programId: programId!.toString(),
           studentId: studentId!.toString(),
+        },
+        query: {
+          month: ((monthYear?.month ?? new Date().getMonth()) + 1).toString(),
+          year: monthYear?.year.toString(),
         },
       });
       if (!res.ok) {
