@@ -8,7 +8,7 @@ import {
   Command,
   FileUser,
   HandCoins,
-  SquareTerminal,
+  User,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -24,13 +24,14 @@ import {
 } from "@/components/ui/sidebar";
 import { UserType } from "@/db/schema";
 import Link from "next/link";
+import { useGetPrograms } from "@/features/programs/hooks/get";
 
 const data = {
   navMain: [
     {
       title: "Students",
       url: "/dashboard/student",
-      icon: SquareTerminal,
+      icon: User,
     },
     {
       title: "Programs",
@@ -85,6 +86,22 @@ interface Props extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ user, ...props }: Props) {
+  const { data: programs } = useGetPrograms();
+
+  const navData = React.useMemo(() => {
+    if (programs) {
+      const programsLinks = programs.map((program) => ({
+        title: program.name,
+        url: `/dashboard/programs/${program.id}`,
+      }));
+
+      return data.navMain.map((item) =>
+        item.title === "Programs" ? { ...item, items: programsLinks } : item,
+      );
+    }
+    return data.navMain;
+  }, [programs]);
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -105,7 +122,7 @@ export function AppSidebar({ user, ...props }: Props) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navData} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

@@ -10,13 +10,13 @@ const $get = client["api"]["students"][":studentId"]["$get"];
 export type StudentResponse = InferResponseType<typeof $get, 200>;
 
 const getStudentQueryOptions = (
-  studentId: number,
+  studentId: number | undefined,
 ): UseQueryOptions<StudentResponse, Error> => ({
   queryKey: ["student", studentId],
   queryFn: async () => {
     const res = await $get({
       param: {
-        studentId: studentId.toString(),
+        studentId: studentId!.toString(),
       },
     });
 
@@ -29,7 +29,7 @@ const getStudentQueryOptions = (
   enabled: !!studentId,
 });
 
-export const useGetStudent = (studentId: number) => {
+export const useGetStudent = (studentId: number | undefined) => {
   return useQuery(getStudentQueryOptions(studentId));
 };
 

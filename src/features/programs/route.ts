@@ -20,7 +20,6 @@ const app = new Hono()
         .groupBy(ProgramExtra.programId)
         .as("program_extras");
 
-      // Main query with proper joins
       const rawPrograms = await db
         .select({
           id: Program.id,

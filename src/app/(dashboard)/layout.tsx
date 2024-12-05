@@ -8,6 +8,13 @@ import SidebarHeader from "@/components/nav-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import SheetProvider from "@/providers/sheet.provider";
 
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import { programQueryOptions } from "@/features/programs/hooks/get";
+
 export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -17,13 +24,19 @@ export default async function DashboardLayout({
     headers: await headers(),
   });
 
+  const queryClient = new QueryClient();
+
+  queryClient.prefetchQuery(programQueryOptions);
+
   if (!session) {
     return null;
   }
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar user={session.user as unknown as UserType} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AppSidebar user={session.user as unknown as UserType} />
+      </HydrationBoundary>
       <SidebarInset>
         <SidebarHeader />
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

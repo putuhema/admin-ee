@@ -2,6 +2,7 @@ import { db } from "@/db";
 import {
   Enrollment,
   EnrollmentInsert,
+  Meeting,
   MeetingPackage,
   Order,
   OrderDetail,
@@ -145,6 +146,30 @@ const app = new Hono()
         console.error(error);
         return c.json({ message: error }, 500);
       }
+    },
+  )
+  .get(
+    "/programs/:programId",
+    zValidator("param", z.object({ programId: z.coerce.number() })),
+    async (c) => {
+      const { programId } = c.req.valid("param");
+
+      const enrollmentPrograms = await db
+        .select()
+        .from(Enrollment)
+        .leftJoin(Student, eq(Enrollment.studentId, Student.id))
+        .leftJoin(Program, eq(Enrollment.programId, Program.id))
+        .leftJoin(
+          MeetingPackage,
+          eq(Enrollment.meetingPackageId, MeetingPackage.id),
+        )
+        .where(eq(Enrollment.programId, programId));
+
+      if (enrollmentPrograms.length === 0) {
+        return c.json({ message: "Enrollment Not found" }, 404);
+      }
+
+      return c.json(enrollmentPrograms);
     },
   )
   .post("/", zValidator("json", enrollmentSchema), async (c) => {

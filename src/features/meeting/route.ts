@@ -9,8 +9,10 @@ import {
 } from "./schema";
 import { db } from "@/db";
 import {
+  Enrollment,
   Meeting,
   MeetingInsert,
+  MeetingPackage,
   MeetingSession,
   MeetingSessionInsert,
   Program,
@@ -19,7 +21,7 @@ import {
 } from "@/db/schema";
 
 import { z } from "zod";
-import { asc, between, eq, sql } from "drizzle-orm";
+import { and, asc, between, eq, sql } from "drizzle-orm";
 import { Variables } from "@/app/api/[[...route]]/route";
 import { supabase } from "@/lib/supabase";
 
@@ -179,6 +181,85 @@ const app = new Hono<Variables>()
         .orderBy(asc(Meeting.startTime));
 
       return c.json(meetings);
+    },
+  )
+  .get(
+    "/programs/:programId/students/:studentId",
+    zValidator(
+      "param",
+      z.object({
+        programId: z.coerce.number().int().positive(),
+        studentId: z.coerce.number().int().positive(),
+      }),
+    ),
+    async (c) => {
+      const { programId, studentId } = c.req.valid("param");
+
+      const meetings = await db.transaction(async (tx) => {
+        const enrollmentDetails = await tx
+          .select({
+            count: MeetingPackage.count,
+          })
+          .from(Enrollment)
+          .leftJoin(
+            MeetingPackage,
+            eq(MeetingPackage.id, Enrollment.meetingPackageId),
+          )
+          .where(
+            and(
+              eq(Enrollment.programId, programId),
+              eq(Enrollment.studentId, studentId),
+            ),
+          )
+          .limit(1)
+          .execute();
+
+        if (!enrollmentDetails.length) {
+          return [];
+        }
+
+        const packageCount = enrollmentDetails[0].count ?? 0;
+
+        const actualMeetings = await tx
+          .select({
+            tutorId: user.id,
+            tutorName: user.name,
+            startTime: MeetingSession.checkInTime,
+            endTime: MeetingSession.checkOutTime,
+            attendance: MeetingSession.studentAttendance,
+          })
+          .from(Meeting)
+          .leftJoin(MeetingSession, eq(Meeting.id, MeetingSession.meetingId))
+          .leftJoin(user, eq(MeetingSession.tutorId, user.id))
+          .leftJoin(Student, eq(Meeting.studentId, Student.id))
+          .where(
+            and(eq(Meeting.programId, programId), eq(Student.id, studentId)),
+          )
+          .orderBy(asc(MeetingSession.checkInTime))
+          .execute();
+
+        return Array.from(
+          { length: packageCount },
+          (_, index) =>
+            actualMeetings[index] ?? {
+              tutorId: null,
+              tutorName: null,
+              startTime: null,
+              endTime: null,
+              attendance: null,
+            },
+        );
+      });
+      const count = meetings.length;
+      const attendance = meetings.filter(
+        (meeting) => meeting.attendance,
+      ).length;
+      return c.json({
+        count,
+        attendance,
+        meetings,
+        attendanceRate: Math.round((attendance / count) * 100),
+      });
     },
   )
   .get(
