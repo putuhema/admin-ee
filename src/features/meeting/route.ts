@@ -90,6 +90,7 @@ const app = new Hono<Variables>()
             json_build_object(
               'id', ${Meeting.id},
               'studentName', ${Student.name},
+              'studentNickname', ${Student.nickname},
               'programName', ${Program.name},
               'startTime', ${Meeting.startTime},
               'endTime', ${Meeting.endTime},
@@ -107,33 +108,10 @@ const app = new Hono<Variables>()
 
         const parsedMeetings = MeetingsResponse.parse(meetings);
 
-        const groupMeetingsByProgram = (
-          meetings: Array<{
-            programName: string;
-            meetings: MeetingResponseType[];
-          }>,
-        ) => {
-          const groupedObj = meetings.reduce(
-            (acc, { programName, meetings: programMeetings }) => {
-              const groupName =
-                PROGRAM_MAPPING[
-                  programName.toLowerCase() as keyof typeof PROGRAM_MAPPING
-                ] || programName;
-              acc[groupName] = acc[groupName] || [];
-              acc[groupName].push(...programMeetings);
-              return acc;
-            },
-            {} as Record<string, MeetingResponseType[]>,
-          );
+        const groupedSchedule =
+          groupMeetingsByProgramAndTimeSlot(parsedMeetings);
 
-          return Object.entries(groupedObj).map(([programName, meetings]) => ({
-            programName,
-            meetings,
-          }));
-        };
-        const groupMeetings = groupMeetingsByProgram(parsedMeetings);
-
-        return c.json(groupMeetings);
+        return c.json(groupedSchedule);
       } catch (error) {
         if (error instanceof z.ZodError) {
           return c.json(
@@ -411,4 +389,71 @@ const app = new Hono<Variables>()
       return c.json({ message: "Meeting deleted" });
     },
   );
+
+const formatTimeSlot = (startTime: Date | string, endTime: Date | string) => {
+  // Convert to Date object if it's not already
+  const start = startTime instanceof Date ? startTime : new Date(startTime);
+  const end = endTime instanceof Date ? endTime : new Date(endTime);
+
+  // Format time to HH:MM
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+  return `${formatTime(start)}-${formatTime(end)}`;
+};
+
+const groupMeetingsByProgramAndTimeSlot = (
+  meetings: Array<{
+    programName: string;
+    meetings: MeetingResponseType[];
+  }>,
+) => {
+  const programGroups: Record<string, MeetingResponseType[]> = {};
+
+  meetings.forEach(({ programName, meetings: programMeetings }) => {
+    const mappedProgramName =
+      PROGRAM_MAPPING[
+        programName.toLowerCase() as keyof typeof PROGRAM_MAPPING
+      ] || programName;
+
+    if (!programGroups[mappedProgramName]) {
+      programGroups[mappedProgramName] = [];
+    }
+
+    programGroups[mappedProgramName].push(...programMeetings);
+  });
+
+  return Object.entries(programGroups).map(([programName, meetings]) => {
+    const timeSlotGroups = meetings.reduce(
+      (acc, meeting) => {
+        const timeSlotKey = formatTimeSlot(meeting.startTime, meeting.endTime);
+
+        if (!acc[timeSlotKey]) {
+          acc[timeSlotKey] = [];
+        }
+
+        acc[timeSlotKey].push(meeting);
+        return acc;
+      },
+      {} as Record<string, MeetingResponseType[]>,
+    );
+
+    const sortedTimeSlots = Object.entries(timeSlotGroups)
+      .map(([timeSlot, timeslotMeetings]) => ({
+        timeSlot,
+        meetings: timeslotMeetings,
+      }))
+      .sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
+
+    return {
+      programName,
+      timeSlots: sortedTimeSlots,
+    };
+  });
+};
+
 export default app;

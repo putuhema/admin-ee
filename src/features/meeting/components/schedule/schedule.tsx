@@ -92,14 +92,7 @@ export function Schedules() {
                 {meeting.programName}
               </p>
               <div className="pl-4 space-y-1">
-                {meeting.meetings.map((m) => (
-                  <ScheduleItem
-                    meetingId={m.id}
-                    key={m.id}
-                    m={m}
-                    index={index}
-                  />
-                ))}
+                <ScheduleItem m={meeting} />
               </div>
             </div>
           ))}

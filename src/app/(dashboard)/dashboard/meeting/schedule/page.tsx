@@ -13,7 +13,7 @@ export default async function SchedulePage() {
   await Promise.all([queryClient.prefetchQuery(programQueryOptions)]);
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <DynamicSchedule />;
+      <DynamicSchedule />
     </HydrationBoundary>
   );
 }

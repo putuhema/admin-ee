@@ -14,6 +14,7 @@ export const MeetingResponse = z.object({
   id: z.number(),
   studentId: z.number(),
   studentName: z.string(),
+  studentNickname: z.string(),
   programName: z.string(),
   type: z.string(),
   startTime: z.coerce.date(),

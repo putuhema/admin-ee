@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { DropdownAction } from "@/features/meeting/components/[date]/meeting-action";
-import { MeetingDateResponse } from "@/features/meeting/queries/get-meeting-by-date";
+import { MeetingDateData } from "@/features/meeting/queries/get-meeting-by-date";
 import { format } from "date-fns";
 import { UserRoundCheck, UserRoundX } from "lucide-react";
 import { MeetingTeacherCell } from "./meeting-teacher-cell";
 
-export const columns: ColumnDef<MeetingDateResponse[0]>[] = [
+export const columns: ColumnDef<MeetingDateData[0]>[] = [
   {
     header: "#",
     cell: ({ row }) => {

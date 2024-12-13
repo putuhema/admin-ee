@@ -1,5 +1,6 @@
 import { client } from "@/lib/rpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { InferResponseType, InferRequestType } from "hono";
 import { toast } from "sonner";
 
@@ -15,11 +16,13 @@ export const useCreateMeetingSession = () => {
       if (!response.ok) {
         throw new Error("Failed to create meeting session");
       }
+      toast.success("Meeting session created successfully");
       return await response.json();
     },
-    onSuccess: () => {
-      toast.success("Meeting session created successfully");
-      queryClient.invalidateQueries({ queryKey: ["meeting/date"] });
+    onSettled: (_, __, { checkInTime }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["meetings", format(checkInTime!, "yyyy-MM-dd")],
+      });
     },
   });
 };
