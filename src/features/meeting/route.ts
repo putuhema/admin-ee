@@ -15,15 +15,17 @@ import {
   MeetingPackage,
   MeetingSession,
   MeetingSessionInsert,
+  MeetingType,
   Program,
   Student,
   user,
 } from "@/db/schema";
 
 import { z } from "zod";
-import { and, asc, between, eq, SQL, sql } from "drizzle-orm";
+import { and, asc, between, eq, inArray, SQL, sql } from "drizzle-orm";
 import { Variables } from "@/app/api/[[...route]]/route";
 import { supabase } from "@/lib/supabase";
+import { clamp } from "date-fns";
 
 const PROGRAM_MAPPING = {
   abama: "Abama/Calistung",
@@ -37,6 +39,8 @@ const PROGRAM_MAPPING = {
   cermat: "Mathe/Cermat",
   private: "Private",
 } as const;
+
+interface GroupedMeeting {}
 
 const app = new Hono<Variables>()
   .get("/", async (c) => {
@@ -139,6 +143,7 @@ const app = new Hono<Variables>()
           studentId: Meeting.studentId,
           programId: Meeting.programId,
           studentName: Student.name,
+          studentNickname: Student.nickname,
           programName: Program.name,
           startTime: Meeting.startTime,
           endTime: Meeting.endTime,
@@ -156,9 +161,80 @@ const app = new Hono<Variables>()
         .leftJoin(MeetingSession, eq(MeetingSession.meetingId, Meeting.id))
         .leftJoin(user, eq(user.id, MeetingSession.tutorId))
         .where(eq(sql`DATE(${Meeting.startTime})`, sql`DATE(${date})`))
-        .orderBy(asc(Meeting.startTime));
+        .orderBy(asc(Student.name));
 
-      return c.json(meetings);
+      const groupedMeetings = meetings.reduce<
+        {
+          studentName: string;
+          studentNickname: string;
+          programGroups: {
+            programName: string;
+            startTime: Date;
+            endTime: Date;
+            status: string;
+            details: typeof meetings;
+          }[];
+        }[]
+      >((acc, meeting) => {
+        // Find existing student group or create a new one
+        let studentGroup = acc.find(
+          (group) => group.studentName === meeting.studentName,
+        );
+
+        if (!studentGroup) {
+          // Create new student group if not exists
+          studentGroup = {
+            studentName: meeting.studentName!,
+            studentNickname: meeting.studentNickname!,
+            programGroups: [
+              {
+                programName: meeting.programName!,
+                startTime: meeting.startTime,
+                endTime: meeting.endTime,
+                status: meeting.meetingSessionStatus!,
+                details: [meeting],
+              },
+            ],
+          };
+          acc.push(studentGroup);
+        } else {
+          // Find or create program group within student group
+          let programGroup = studentGroup.programGroups.find(
+            (pg) => pg.programName === meeting.programName,
+          );
+
+          if (!programGroup) {
+            // Create new program group for this student
+            programGroup = {
+              programName: meeting.programName!,
+              startTime: meeting.startTime!,
+              endTime: meeting.endTime,
+              status: meeting.meetingSessionStatus!,
+              details: [meeting],
+            };
+            studentGroup.programGroups.push(programGroup);
+          } else {
+            // Update start and end times for existing program group
+            programGroup.startTime = new Date(
+              Math.min(
+                new Date(programGroup.startTime).getTime(),
+                new Date(meeting.startTime).getTime(),
+              ),
+            );
+            programGroup.endTime = new Date(
+              Math.max(
+                new Date(programGroup.endTime).getTime(),
+                new Date(meeting.endTime).getTime(),
+              ),
+            );
+            programGroup.details.push(meeting);
+          }
+        }
+
+        return acc;
+      }, []);
+
+      return c.json(groupedMeetings);
     },
   )
   .get(
@@ -334,7 +410,13 @@ const app = new Hono<Variables>()
   })
   .post(
     "/claim-session",
-    zValidator("json", z.object({ meetingId: z.coerce.number() })),
+    zValidator(
+      "json",
+      z.object({
+        ids: z.array(z.number()),
+        session: z.number(),
+      }),
+    ),
     async (c) => {
       const logginUser = c.get("user");
 
@@ -342,8 +424,56 @@ const app = new Hono<Variables>()
         return c.json({ error: "Unauthorized" }, 401);
       }
 
-      const { meetingId } = c.req.valid("json");
-      const channel = supabase.channel("meeting-claimed");
+      const { ids, session } = c.req.valid("json");
+
+      await db.transaction(async (tx) => {
+        const claimedMeeting = await tx
+          .select()
+          .from(Meeting)
+          .where(inArray(Meeting.id, ids));
+
+        if (claimedMeeting.length === 0) {
+          return c.json({ error: "Meeting not found" }, 404);
+        }
+
+        const currentMeeting = claimedMeeting[claimedMeeting.length - 1];
+
+        let newMeeting: MeetingType[] = [];
+        if (claimedMeeting.length !== session) {
+          newMeeting = await tx
+            .insert(Meeting)
+            .values({
+              programId: currentMeeting.programId,
+              status: "inprogress",
+              startTime: currentMeeting.endTime,
+              endTime: new Date(
+                currentMeeting.endTime.getTime() + 60 * 60 * 1000,
+              ),
+              studentId: currentMeeting.studentId,
+              type: "scheduled",
+            })
+            .returning();
+        }
+
+        const meetingIds =
+          newMeeting.length > 0 ? [...ids, newMeeting[0].id] : ids;
+        const meetings = await tx
+          .select()
+          .from(Meeting)
+          .where(inArray(Meeting.id, meetingIds));
+
+        await tx.insert(MeetingSession).values(
+          meetings.map((meeting) => ({
+            meetingId: meeting.id,
+            tutorId: logginUser.id,
+            checkInTime: new Date(),
+            status: "inprogress" as MeetingSessionInsert["status"],
+            studentAttendance: true,
+          })),
+        );
+      });
+
+      const channel = supabase.channel("meeting-laimed");
 
       channel.subscribe((status) => {
         if (status !== "SUBSCRIBED") {
@@ -355,24 +485,6 @@ const app = new Hono<Variables>()
           event: "meeting-claimed",
           payload: {},
         });
-      });
-
-      const claimedMeeting = await db
-        .select()
-        .from(Meeting)
-        .where(eq(Meeting.id, meetingId))
-        .limit(1);
-
-      if (claimedMeeting.length === 0) {
-        return c.json({ error: "Meeting not found" }, 404);
-      }
-
-      await db.insert(MeetingSession).values({
-        meetingId: meetingId,
-        tutorId: logginUser.id,
-        checkInTime: new Date(),
-        status: "inprogress",
-        studentAttendance: true,
       });
 
       return c.json({ message: "Meeting claimed" });
@@ -391,11 +503,9 @@ const app = new Hono<Variables>()
   );
 
 const formatTimeSlot = (startTime: Date | string, endTime: Date | string) => {
-  // Convert to Date object if it's not already
   const start = startTime instanceof Date ? startTime : new Date(startTime);
   const end = endTime instanceof Date ? endTime : new Date(endTime);
 
-  // Format time to HH:MM
   const formatTime = (date: Date) =>
     date.toLocaleTimeString("en-US", {
       hour: "2-digit",

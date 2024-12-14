@@ -1,20 +1,23 @@
 import React from "react";
 import TeacherAvatar from "./teacher-avatar";
 import { MeetingType } from "@/db/schema";
-import { Ellipsis } from "lucide-react";
+import { AlarmClockCheck, Ellipsis, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface CurrentTeacherProps {
   status: MeetingType["status"];
   tutorName: string;
 }
 
-const PROGRESS = {
+export const PROGRESS = {
   inprogress: "sedang",
   completed: "selesai",
   scheduled: "akan",
@@ -38,16 +41,23 @@ export default function CurrentTeacher({
         </p>
       </div>
 
-      <Popover>
-        <PopoverTrigger asChild>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost">
             <Ellipsis />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end">
-          Place content for the popover here.
-        </PopoverContent>
-      </Popover>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
+            <AlarmClockCheck /> Completed
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Send /> Transfer
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
