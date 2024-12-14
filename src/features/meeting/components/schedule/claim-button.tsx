@@ -31,7 +31,7 @@ interface ClaimButtonProps {
 export default function ClaimButton({ meetings }: ClaimButtonProps) {
   const [open, setOpen] = React.useState(false);
   const [session, setSession] = React.useState(meetings.length ?? 1);
-  const { mutate, isPending } = useClaimSession();
+  const { mutate } = useClaimSession();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     mutate({
@@ -88,7 +88,6 @@ export default function ClaimButton({ meetings }: ClaimButtonProps) {
           </Select>
           <Button className="col-span-full">Mulai Mengajar</Button>
         </form>
-        <div className="flex gap-4">{meetings.map((m) => m.id)}</div>
       </DialogContent>
     </Dialog>
   );

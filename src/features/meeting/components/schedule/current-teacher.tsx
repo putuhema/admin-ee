@@ -1,7 +1,7 @@
 import React from "react";
 import TeacherAvatar from "./teacher-avatar";
 import { MeetingType } from "@/db/schema";
-import { AlarmClockCheck, Ellipsis, Send } from "lucide-react";
+import { AlarmClockCheck, Check, Ellipsis, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,10 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MeetingDateData } from "../../queries/get-meeting-by-date";
+import { useCompleteMeeting } from "../../queries/patch-completed-meeting";
 
 interface CurrentTeacherProps {
-  status: MeetingType["status"];
-  tutorName: string;
+  status: string;
+  meetings: MeetingDateData[0]["programGroups"][0]["details"];
 }
 
 export const PROGRESS = {
@@ -26,31 +28,40 @@ export const PROGRESS = {
 } as const;
 
 export default function CurrentTeacher({
+  meetings,
   status,
-  tutorName,
 }: CurrentTeacherProps) {
+  const { mutate } = useCompleteMeeting();
+  const latestMeeting = meetings[meetings.length - 1];
+
+  const handleCompletedMeeting = () => {
+    mutate({
+      meetingIds: meetings.map((m) => m.id),
+    });
+  };
+
   return (
     <div className="flex gap-4 justify-between items-center">
       <TeacherAvatar />
       <div>
         <p className="text-xs text-muted-foreground">
-          {PROGRESS[status!]} diajar
+          {PROGRESS[status as keyof typeof PROGRESS]} diajar
         </p>
         <p className="capitalize overflow-hidden text-ellipsis">
-          Mr. {tutorName?.split(" ")[0]}
+          Mr. {latestMeeting.tutorName?.split(" ")[0]}
         </p>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="icon" variant="ghost">
-            <Ellipsis />
+          <Button disabled={status === "completed"} size="icon" variant="ghost">
+            {status === "completed" ? <Check /> : <Ellipsis />}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCompletedMeeting}>
             <AlarmClockCheck /> Completed
           </DropdownMenuItem>
           <DropdownMenuItem>

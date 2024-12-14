@@ -129,6 +129,8 @@ export default function Schedule() {
                         "text-xs w-full grid grid-cols-3 gap-2 p-2 border rounded-md",
                         PROGRAM_COLOR[mp.programName as PC].box,
                         PROGRAM_COLOR[mp.programName as PC].text,
+                        mp.status === "completed" &&
+                          "border-border text-muted-foreground",
                       )}
                     >
                       <p className="capitalize">{mp.programName}</p>
@@ -144,10 +146,8 @@ export default function Schedule() {
                       ) : (
                         <div>
                           <CurrentTeacher
-                            status={mp.status as any}
-                            tutorName={
-                              mp.details[mp.details.length - 1].tutorName!
-                            }
+                            status={mp.status}
+                            meetings={mp.details}
                           />
                         </div>
                       )}

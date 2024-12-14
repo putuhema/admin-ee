@@ -490,6 +490,36 @@ const app = new Hono<Variables>()
       return c.json({ message: "Meeting claimed" });
     },
   )
+  .patch(
+    "/meeting-session/completed",
+    zValidator(
+      "json",
+      z.object({
+        meetingIds: z.array(z.number()),
+      }),
+    ),
+    async (c) => {
+      const { meetingIds } = c.req.valid("json");
+
+      await db.transaction(async (tx) => {
+        await tx
+          .update(MeetingSession)
+          .set({
+            status: "completed",
+          })
+          .where(inArray(MeetingSession.meetingId, meetingIds));
+
+        await tx
+          .update(Meeting)
+          .set({
+            status: "completed",
+          })
+          .where(inArray(Meeting.id, meetingIds));
+      });
+
+      return c.json({ message: "successfully update meeting" }, 200);
+    },
+  )
   .delete(
     "/",
     zValidator("json", z.object({ id: z.coerce.number() })),
