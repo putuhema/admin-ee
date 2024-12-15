@@ -25,7 +25,6 @@ import { z } from "zod";
 import { and, asc, between, eq, inArray, SQL, sql } from "drizzle-orm";
 import { Variables } from "@/app/api/[[...route]]/route";
 import { supabase } from "@/lib/supabase";
-import { clamp } from "date-fns";
 
 const PROGRAM_MAPPING = {
   abama: "Abama/Calistung",
@@ -130,11 +129,27 @@ const app = new Hono<Variables>()
   .get(
     "/date/:date",
     zValidator("param", z.object({ date: z.string() })),
+    zValidator("query", z.object({ type: z.string().default("all") })),
     async (c) => {
+      const logginUser = c.get("user");
+
+      if (!logginUser) {
+        return c.json({ message: "Unauthorized" }, 401);
+      }
+
       const { date } = c.req.valid("param");
+      const { type } = c.req.valid("query");
 
       if (!date) {
         return c.json({ error: "Date is required" }, 400);
+      }
+
+      const whereClause: SQL[] = [];
+
+      whereClause.push(eq(sql`DATE(${Meeting.startTime})`, sql`DATE(${date})`));
+
+      if (type === "loggin-user") {
+        whereClause.push(eq(user.id, logginUser.id));
       }
 
       const meetings = await db
@@ -160,7 +175,7 @@ const app = new Hono<Variables>()
         .leftJoin(Program, eq(Program.id, Meeting.programId))
         .leftJoin(MeetingSession, eq(MeetingSession.meetingId, Meeting.id))
         .leftJoin(user, eq(user.id, MeetingSession.tutorId))
-        .where(eq(sql`DATE(${Meeting.startTime})`, sql`DATE(${date})`))
+        .where(and(...whereClause))
         .orderBy(asc(Student.name));
 
       const groupedMeetings = meetings.reduce<

@@ -1,5 +1,5 @@
-import Schedule from "@/features/meeting/components/schedule/home-schedule";
+import SchedulePage from "@/features/meeting/components/schedule/schedule-index";
 
-export default function SchedulePage() {
-  return <Schedule />;
+export default function Schedule() {
+  return <SchedulePage />;
 }

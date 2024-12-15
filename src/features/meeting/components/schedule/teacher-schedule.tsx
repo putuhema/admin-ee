@@ -55,8 +55,11 @@ export const PROGRAM_COLOR = {
 
 export type PC = keyof typeof PROGRAM_COLOR;
 
-export default function Schedule() {
-  const { data: meetings, isLoading } = useGetMeetingByDate(new Date());
+export default function TeacherSchedule() {
+  const { data: meetings, isLoading } = useGetMeetingByDate(
+    new Date(),
+    "loggin-user",
+  );
 
   if (isLoading) {
     return <HomeScheduleSkeleton />;
