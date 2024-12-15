@@ -1,9 +1,12 @@
-import Link from "next/link";
+"use client";
 import React from "react";
+
+import Link from "next/link";
 import { UserButton } from "./user-button";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { UserType } from "@/db/schema";
+import { useIsClient } from "@uidotdev/usehooks";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { SegmentedControl } from "@/features/home";
 
 const mainNav = [
   {
@@ -20,14 +23,26 @@ const mainNav = [
   },
 ];
 
-export default async function MainNav() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+interface MainNavProps {
+  user: UserType;
+}
 
-  if (!session) {
-    return null;
+export default function MainNav({ user }: MainNavProps) {
+  const isClient = useIsClient();
+  const isMobile = useIsMobile();
+
+  if (!isClient) {
+    return;
   }
+
+  if (isMobile) {
+    return (
+      <div className="fixed z-50 bottom-0 left-0 w-full">
+        <SegmentedControl />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full fixed top-0 left-0">
       <nav className="w-full flex justify-between items-center p-2 bg-background border text-foreground">
@@ -38,7 +53,7 @@ export default async function MainNav() {
             </Link>
           ))}
         </ul>
-        <UserButton user={session.user as unknown as UserType} />
+        <UserButton user={user} />
       </nav>
     </div>
   );

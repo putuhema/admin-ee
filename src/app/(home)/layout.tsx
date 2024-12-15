@@ -1,12 +1,24 @@
 import MainNav from "@/components/main-nav";
+import { UserType } from "@/db/schema";
 
-export default function HomeLayout({
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
+export default async function HomeLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return null;
+  }
+
   return (
-    <div>
-      <MainNav />
-      <main className="p-4 mt-10">{children}</main>
-    </div>
+    <main className="p-4 mt-8 pb-32">
+      <MainNav user={session.user as unknown as UserType} />
+      {children}
+    </main>
   );
 }

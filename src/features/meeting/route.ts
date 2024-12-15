@@ -21,11 +21,12 @@ import {
   user,
 } from "@/db/schema";
 
-import { z } from "zod";
+import { custom, z } from "zod";
 import { and, asc, between, eq, inArray, SQL, sql } from "drizzle-orm";
 import { Variables } from "@/app/api/[[...route]]/route";
 import { supabase } from "@/lib/supabase";
 import { pusherServer } from "@/lib/pusher";
+import { checkCustomRoutes } from "next/dist/lib/load-custom-routes";
 
 const PROGRAM_MAPPING = {
   abama: "Abama/Calistung",
@@ -166,6 +167,8 @@ const app = new Hono<Variables>()
           location: Meeting.location,
           status: Meeting.status,
           meetingSessionStatus: MeetingSession.status,
+          meetingSessionCheckIn: MeetingSession.checkInTime,
+          meetingSessionCheckOut: MeetingSession.checkOutTime,
           type: Meeting.type,
           attendance: MeetingSession.studentAttendance,
           tutorId: MeetingSession.tutorId,
@@ -177,7 +180,7 @@ const app = new Hono<Variables>()
         .leftJoin(MeetingSession, eq(MeetingSession.meetingId, Meeting.id))
         .leftJoin(user, eq(user.id, MeetingSession.tutorId))
         .where(and(...whereClause))
-        .orderBy(asc(Student.name));
+        .orderBy(asc(Meeting.status));
 
       const groupedMeetings = meetings.reduce<
         {
@@ -187,6 +190,8 @@ const app = new Hono<Variables>()
             programName: string;
             startTime: Date;
             endTime: Date;
+            checkOutTime: Date;
+            checkInTime: Date;
             status: string;
             details: typeof meetings;
           }[];
@@ -208,6 +213,8 @@ const app = new Hono<Variables>()
                 startTime: meeting.startTime,
                 endTime: meeting.endTime,
                 status: meeting.meetingSessionStatus!,
+                checkOutTime: meeting.meetingSessionCheckOut!,
+                checkInTime: meeting.meetingSessionCheckIn!,
                 details: [meeting],
               },
             ],
@@ -226,6 +233,8 @@ const app = new Hono<Variables>()
               startTime: meeting.startTime!,
               endTime: meeting.endTime,
               status: meeting.meetingSessionStatus!,
+              checkOutTime: meeting.meetingSessionCheckOut!,
+              checkInTime: meeting.meetingSessionCheckIn!,
               details: [meeting],
             };
             studentGroup.programGroups.push(programGroup);
@@ -477,12 +486,18 @@ const app = new Hono<Variables>()
           .select()
           .from(Meeting)
           .where(inArray(Meeting.id, meetingIds));
+        const currentDate = new Date();
+        const duration = meetings.length;
 
         await tx.insert(MeetingSession).values(
           meetings.map((meeting) => ({
+            duration: 1,
             meetingId: meeting.id,
             tutorId: logginUser.id,
-            checkInTime: new Date(),
+            checkInTime: currentDate,
+            checkOutTime: new Date(
+              currentDate.getTime() + 60 * 60 * 1000 * duration,
+            ),
             status: "inprogress" as MeetingSessionInsert["status"],
             studentAttendance: true,
           })),

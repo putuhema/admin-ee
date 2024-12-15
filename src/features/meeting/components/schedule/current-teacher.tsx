@@ -1,6 +1,6 @@
 import React from "react";
+
 import TeacherAvatar from "./teacher-avatar";
-import { MeetingType } from "@/db/schema";
 import { AlarmClockCheck, Check, Ellipsis, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,17 +41,13 @@ export default function CurrentTeacher({
   };
 
   return (
-    <div className="flex gap-4 justify-between items-center">
-      <TeacherAvatar />
-      <div>
-        <p className="text-xs text-muted-foreground">
-          {PROGRESS[status as keyof typeof PROGRESS]} diajar
-        </p>
+    <div className="flex gap-2 justify-between items-center">
+      <div className="inline-flex items-center gap-1">
+        <TeacherAvatar />
         <p className="capitalize overflow-hidden text-ellipsis">
           Mr. {latestMeeting.tutorName?.split(" ")[0]}
         </p>
       </div>
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button disabled={status === "completed"} size="icon" variant="ghost">

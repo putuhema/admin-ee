@@ -3,7 +3,6 @@
 import React from "react";
 
 import { useGetMeetingByDate } from "@/features/meeting/queries/get-meeting-by-date";
-import { Separator } from "@/components/ui/separator";
 import ClaimButton from "./claim-button";
 import { cn } from "@/lib/utils";
 import HomeScheduleSkeleton from "./home-schedule-skeleton";
@@ -12,6 +11,8 @@ import { pusherClient } from "@/lib/pusher";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import Timer from "./timer";
+import { Separator } from "@/components/ui/separator";
 
 export const PROGRAM_COLOR = {
   abama: {
@@ -58,9 +59,12 @@ export const PROGRAM_COLOR = {
 
 export type PC = keyof typeof PROGRAM_COLOR;
 
-export default function Schedule() {
-  const { data: meetings, isLoading } = useGetMeetingByDate(new Date());
+interface ScheduleProps {
+  type: "all" | "loggin-user";
+}
 
+export default function Schedule({ type }: ScheduleProps) {
+  const { data: meetings, isLoading } = useGetMeetingByDate(new Date(), type);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -85,21 +89,12 @@ export default function Schedule() {
 
   return (
     <section className="max-w-xl mx-auto">
-      <div className="flex justify-between items-center">
-        <h1 className="font-bold text-xl tracking-wider">Meeting Schedule</h1>
-        <p>{format(new Date(), "dd/MM/yyy")}</p>
-      </div>
-      <Separator className="my-6" />
       <div className="space-y-2">
         {meetings.map((meeting, idx) => {
           return (
             <div key={idx} className={cn("flex items-center p-2")}>
               <div className="w-full">
-                <span
-                  className={cn(
-                    "text-sm uppercase  inline-flex gap-2 items-center",
-                  )}
-                >
+                <span className="text-sm uppercase  inline-flex gap-2 items-center">
                   {meeting.studentNickname}
                 </span>
                 <span className="text-sm ml-2">({meeting.studentName})</span>
@@ -108,18 +103,44 @@ export default function Schedule() {
                     <div
                       key={mp.programName}
                       className={cn(
-                        "text-xs w-full grid grid-cols-3 gap-2 p-2 border rounded-md",
-                        PROGRAM_COLOR[mp.programName as PC].box,
-                        PROGRAM_COLOR[mp.programName as PC].text,
+                        "text-xs w-full grid grid-cols-2 gap-2 p-2 items-center ",
                         mp.status === "completed" &&
                           "border-border text-muted-foreground",
                       )}
                     >
-                      <p className="capitalize">{mp.programName}</p>
-                      <div className="flex items-center">
-                        <p>{format(new Date(mp.startTime), "hh:mm a")}</p>
-                        <p>-</p>
-                        <p>{format(new Date(mp.endTime), "hh:mm a")}</p>
+                      <div>
+                        <p className="capitalize">{mp.programName}</p>
+                        <div className="flex items-center">
+                          <p>
+                            {format(
+                              new Date(
+                                mp.status === "inprogress" ||
+                                mp.status === "completed"
+                                  ? mp.checkInTime
+                                  : mp.startTime,
+                              ),
+                              "hh:mm a",
+                            )}
+                          </p>
+                          <p>-</p>
+                          <p>
+                            {format(
+                              new Date(
+                                mp.status === "inprogress" ||
+                                mp.status === "completed"
+                                  ? mp.checkOutTime
+                                  : mp.endTime,
+                              ),
+                              "hh:mm a",
+                            )}
+                          </p>
+                        </div>
+                        {mp.status === "inprogress" && (
+                          <Timer
+                            meetingIds={mp.details.map((m) => m.id)}
+                            endTime={new Date(mp.checkOutTime)}
+                          />
+                        )}
                       </div>
                       {!mp.status ? (
                         <div className="inline-flex justify-center items-center">
@@ -135,6 +156,7 @@ export default function Schedule() {
                       )}
                     </div>
                   ))}
+                  <Separator />
                 </div>
               </div>
             </div>

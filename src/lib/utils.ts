@@ -24,3 +24,12 @@ export const formatRupiah = (str: string) => {
   const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return decimal ? `${formattedWhole}.${decimal}` : formattedWhole;
 };
+
+export function formatTime(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const second = seconds % 60;
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${second.toString().padStart(2, "0")}`;
+}
