@@ -1,14 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useClaimSession } from "@/features/meeting/queries/claim-session";
 import { MeetingDateData } from "../../queries/get-meeting-by-date";
-
-import { supabase } from "@/lib/supabase";
-import { REALTIME_LISTEN_TYPES } from "@supabase/supabase-js";
-import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
 
 import {
   Dialog,
@@ -46,36 +41,6 @@ export default function ClaimButton({ meetings }: ClaimButtonProps) {
     });
     setOpen(false);
   };
-
-  const [payload, setPayload] = React.useState<any>(null);
-  const channel = supabase.channel("meeting-claimed");
-
-  const queryClient = useQueryClient();
-  channel
-    .on(
-      REALTIME_LISTEN_TYPES.BROADCAST,
-      { event: "meeting-claimed" },
-      (payload) => {
-        setPayload(payload);
-      },
-    )
-    .subscribe();
-
-  React.useEffect(() => {
-    if (!payload || !meetings) return;
-
-    queryClient.invalidateQueries({ queryKey: ["meetings"] });
-    queryClient.invalidateQueries({
-      queryKey: ["meetings", format(new Date(), "yyyy-MM-dd"), "all"],
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["meetings", format(new Date(), "yyyy-MM-dd"), "loggin-user"],
-    });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [payload, meetings]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

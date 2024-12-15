@@ -25,6 +25,7 @@ import { z } from "zod";
 import { and, asc, between, eq, inArray, SQL, sql } from "drizzle-orm";
 import { Variables } from "@/app/api/[[...route]]/route";
 import { supabase } from "@/lib/supabase";
+import { pusherServer } from "@/lib/pusher";
 
 const PROGRAM_MAPPING = {
   abama: "Abama/Calistung",
@@ -488,18 +489,10 @@ const app = new Hono<Variables>()
         );
       });
 
-      const channel = supabase.channel("meeting-laimed");
-
-      channel.subscribe((status) => {
-        if (status !== "SUBSCRIBED") {
-          return null;
-        }
-
-        channel.send({
-          type: "broadcast",
-          event: "meeting-claimed",
-          payload: {},
-        });
+      pusherServer.trigger("meeting", "claimed-meeting", {
+        data: {
+          message: "new Message",
+        },
       });
 
       return c.json({ message: "Meeting claimed" });

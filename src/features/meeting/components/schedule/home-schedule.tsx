@@ -3,12 +3,15 @@
 import React from "react";
 
 import { useGetMeetingByDate } from "@/features/meeting/queries/get-meeting-by-date";
-import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import ClaimButton from "./claim-button";
 import { cn } from "@/lib/utils";
 import HomeScheduleSkeleton from "./home-schedule-skeleton";
 import CurrentTeacher from "./current-teacher";
+import { pusherClient } from "@/lib/pusher";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 
 export const PROGRAM_COLOR = {
   abama: {
@@ -57,6 +60,20 @@ export type PC = keyof typeof PROGRAM_COLOR;
 
 export default function Schedule() {
   const { data: meetings, isLoading } = useGetMeetingByDate(new Date());
+
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    pusherClient.subscribe("meeting");
+
+    pusherClient.bind("claimed-meeting", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["meetings", format(new Date(), "yyyy-MM-dd"), "all"],
+      });
+    });
+
+    return () => pusherClient.unsubscribe("meeting");
+  }, []);
 
   if (isLoading) {
     return <HomeScheduleSkeleton />;
