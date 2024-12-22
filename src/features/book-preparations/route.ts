@@ -10,7 +10,7 @@ import {
   ProgramExtra,
   Student,
 } from "@/db/schema";
-import { and, AnyColumn, asc, desc, eq, sql } from "drizzle-orm";
+import { and, AnyColumn, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const app = new Hono()
@@ -43,6 +43,7 @@ const app = new Hono()
               prepareDate: BookPreparationStatus.prepareDate,
               paidDate: BookPreparationStatus.paidDate,
               deliveredDate: BookPreparationStatus.deliveredDate,
+              notes: BookPreparationStatus.notes,
               status: BookPreparationStatus.status,
             })
             .from(BookPreparationStatus)
@@ -102,6 +103,44 @@ const app = new Hono()
       }
     }
   )
+  .get(
+    "/:id",
+    zValidator(
+      "param",
+      z.object({
+        id: z.coerce.number(),
+      })
+    ),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const bookPrep = await db
+        .select({
+          id: BookPreparationStatus.id,
+          program: { id: Program.id, name: Program.name },
+          student: {
+            id: Student.id,
+            name: Student.name,
+            nickname: Student.nickname,
+          },
+          prepareDate: BookPreparationStatus.prepareDate,
+          paidDate: BookPreparationStatus.paidDate,
+          deliveredDate: BookPreparationStatus.deliveredDate,
+          notes: BookPreparationStatus.notes,
+          status: BookPreparationStatus.status,
+        })
+        .from(BookPreparationStatus)
+        .leftJoin(Student, eq(Student.id, BookPreparationStatus.studentId))
+        .leftJoin(Program, eq(Program.id, BookPreparationStatus.programId))
+        .where(eq(BookPreparationStatus.id, id))
+        .limit(1);
+
+      if (bookPrep.length === 0) {
+        return c.json({ error: "Book Preparations not found" }, 404);
+      }
+
+      return c.json(bookPrep[0]);
+    }
+  )
   .post("/", zValidator("json", bookPreparationsSchema), async (c) => {
     const formData = c.req.valid("json");
 
@@ -149,6 +188,42 @@ const app = new Hono()
 
     return c.json(result);
   })
+  .put(
+    "/",
+    zValidator(
+      "json",
+      bookPreparationsSchema.extend({
+        id: z.number(),
+      })
+    ),
+    async (c) => {
+      try {
+        const formData = c.req.valid("json");
+
+        const updatedBooks = await db
+          .update(BookPreparationStatus)
+          .set({
+            studentId: Number(formData.studentId),
+            programId: Number(formData.programId),
+            notes: formData.notes,
+          })
+          .where(eq(BookPreparationStatus.id, formData.id))
+          .returning();
+
+        if (updatedBooks.length === 0) {
+          return c.json({ error: "Book Preparations not found" }, 404);
+        }
+
+        return c.json({
+          message: "Book preparation updated successfully",
+          data: updatedBooks[0],
+        });
+      } catch (error) {
+        console.error("Error updating book preparation:", error);
+        return c.json({ error: "Failed to update book preparation" }, 500);
+      }
+    }
+  )
   .patch(
     "/status",
     zValidator(
@@ -186,6 +261,50 @@ const app = new Hono()
       } catch (error) {
         console.error("Error updating book preparation status", error);
         return c.json({ error: "Failed to update status" }, 500);
+      }
+    }
+  )
+  .delete("/", zValidator("json", z.object({ id: z.number() })), async (c) => {
+    try {
+      const { id } = c.req.valid("json");
+
+      const deletedBooks = await db
+        .delete(BookPreparationStatus)
+        .where(eq(BookPreparationStatus.id, id))
+        .returning();
+
+      if (deletedBooks.length === 0) {
+        return c.json({ error: "Book Preparations not found" }, 404);
+      }
+
+      return c.json({
+        message: "Book preparation deleted successfully",
+        data: deletedBooks[0],
+      });
+    } catch (error) {
+      console.error("Error deleting book preparation:", error);
+      return c.json({ error: "Failed to delete book preparation" }, 500);
+    }
+  })
+  .delete(
+    "/bulk-delete",
+    zValidator("json", z.array(z.number())),
+    async (c) => {
+      try {
+        const ids = c.req.valid("json");
+
+        const deletedBooks = await db
+          .delete(BookPreparationStatus)
+          .where(inArray(BookPreparationStatus.id, ids))
+          .returning();
+
+        return c.json({
+          message: "Book preparation deleted successfully",
+          data: deletedBooks,
+        });
+      } catch (error) {
+        console.error("Error deleting book preparation:", error);
+        return c.json({ error: "Failed to delete book preparation" }, 500);
       }
     }
   );

@@ -10,7 +10,7 @@ export type BookPreparationData = InferResponseType<typeof $get, 200>;
 export const useGetBookPreps = (
   limit?: number,
   offset?: number,
-  filters?: BookPrepFilter,
+  filters?: BookPrepFilter
 ) => {
   return useQuery<BookPreparationData, Error>({
     queryKey: bookPrepKeys.lists(limit, offset, filters),
@@ -40,6 +40,7 @@ export const useGetBookPreps = (
         const data = await response.json();
         return data;
       } catch (error) {
+        console.error(error);
         throw new Error("Failed to fetch students");
       }
     },

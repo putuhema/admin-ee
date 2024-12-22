@@ -16,7 +16,7 @@ import { TableInstance } from "./table-wrapper";
 import { Table } from "./table";
 import { TableSearch } from "./table-search";
 import TablePagination from "./table-pagination";
-import { useBulkDeleteStudents } from "@/features/students/queries/bulk-delete";
+import { useBulkDeleteBookPrep } from "../../queries/bulk-delete-bookprep";
 import usenewBookPreparations from "@/features/book-preparations/hooks/use-new-preparations";
 
 interface TableContainerProps {
@@ -32,7 +32,7 @@ export const TableContainer = ({
 }: TableContainerProps) => {
   const { onOpen } = usenewBookPreparations();
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
-  const { mutate: deleteStudents } = useBulkDeleteStudents();
+  const { mutate: deleteBookPreps } = useBulkDeleteBookPrep();
   const [ConfirmationDialog, confirm] = useConfirm({
     title: "Are you sure?",
     message: "The selected book preparations will get deleted permanently.",
@@ -62,7 +62,7 @@ export const TableContainer = ({
                   table,
                   selectedItems,
                   confirm,
-                  deleteStudents
+                  deleteBookPreps
                 )}
                 table={table}
               />
@@ -183,7 +183,7 @@ const DeleteButton: React.FC<{
       variant="destructive"
       className="flex items-center gap-2"
       onClick={onDelete}
-      aria-label={`Delete ${selectedItems.length} selected students`}
+      aria-label={`Delete ${selectedItems.length} selected items`}
     >
       <TrashIcon className="h-4 w-4" aria-hidden="true" />
       <span className="hidden md:block">

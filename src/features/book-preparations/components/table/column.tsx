@@ -34,16 +34,6 @@ export const bookPrepColumns: ColumnDef<BookPrep>[] = [
     minSize: 250,
   },
   {
-    header: "Program",
-    accessorKey: "program",
-    cell: ({ row }) => (
-      <div className="min-w-[100px] capitalize" role="cell">
-        {row.original.program?.name}
-      </div>
-    ),
-    minSize: 100,
-  },
-  {
     accessorKey: "status",
     header: () => (
       <div className="flex justify-center items-center min-w-[100px]">
@@ -56,6 +46,26 @@ export const bookPrepColumns: ColumnDef<BookPrep>[] = [
           id={row.original.id}
           currentStatus={row.original.status}
         />
+      </div>
+    ),
+    minSize: 100,
+  },
+  {
+    header: "Program",
+    accessorKey: "program",
+    cell: ({ row }) => (
+      <div className="min-w-[100px] capitalize" role="cell">
+        {row.original.program?.name}
+      </div>
+    ),
+    minSize: 100,
+  },
+  {
+    header: "Notes",
+    accessorKey: "notes",
+    cell: ({ row }) => (
+      <div className="min-w-[100px] capitalize" role="cell">
+        {row.original.notes}
       </div>
     ),
     minSize: 100,

@@ -12,8 +12,9 @@ const COLUMN_CONFIGS = {
   all: [
     "select",
     "name",
-    "program",
     "status",
+    "program",
+    "notes",
     "prepareDate",
     "paidDate",
     "deliveredDate",

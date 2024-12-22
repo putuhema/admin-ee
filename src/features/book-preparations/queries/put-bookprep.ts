@@ -3,21 +3,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { toast } from "sonner";
 
-const $post = client.api["book-preparations"]["$post"];
+const $put = client.api["book-preparations"]["$put"];
 
-type BookResponse = InferResponseType<typeof $post, 200>;
-type BookRequest = InferRequestType<typeof $post>["json"];
+type BookResponse = InferResponseType<typeof $put, 200>;
+type BookRequest = InferRequestType<typeof $put>["json"];
 
-export function useCreateBookPreparations() {
+export function useUpdateBookPreparation() {
   const queryClient = useQueryClient();
   return useMutation<BookResponse, Error, BookRequest>({
     mutationFn: async (formData) => {
-      const res = await $post({ json: formData });
+      const res = await $put({ json: formData });
       if (!res.ok) {
         throw new Error("Failed to create book preparations");
       }
 
-      toast.success("Book preparations created successfully");
+      toast.success("Book preparations updated successfully");
       const data = await res.json();
       return data;
     },

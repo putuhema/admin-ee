@@ -62,7 +62,11 @@ export function StudentForm({ student }: StudentFormProps) {
 
   const onCloseSheet = () => {
     form.reset();
-    student ? onClose() : closeSheet("STUDENT_FORM");
+    if (student) {
+      onClose();
+    } else {
+      closeSheet("STUDENT_FORM");
+    }
   };
 
   return (

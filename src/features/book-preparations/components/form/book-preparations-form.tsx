@@ -21,21 +21,49 @@ import {
 } from "@/components/ui/form";
 import { Book } from "lucide-react";
 import { useCreateBookPreparations } from "../../queries/post-book-preparations";
+import { BookPrepData } from "../../queries/get-book-preparation";
+import { useUpdateBookPreparation } from "../../queries/put-bookprep";
+import useEditBookPreps from "../../hooks/use-edit-dialog";
+import usenewBookPreparations from "../../hooks/use-new-preparations";
 
-export default function BookPreparationsForm() {
+interface BookPreparationsFormProps {
+  bookPrep?: BookPrepData | undefined;
+}
+
+export default function BookPreparationsForm({
+  bookPrep,
+}: BookPreparationsFormProps) {
+  const { onClose } = useEditBookPreps();
+  const { onClose: closeNewBookPrep } = usenewBookPreparations();
+
   const { mutate } = useCreateBookPreparations();
+  const { mutate: updateBookPrep } = useUpdateBookPreparation();
+
   const form = useForm<BookPreparationData>({
     resolver: zodResolver(bookPreparationsSchema),
     defaultValues: {
-      programId: 1,
-      studentId: "",
-      notes: "",
+      programId: bookPrep?.program!.id ?? 1,
+      studentId: bookPrep?.student!.name ?? "",
+      notes: bookPrep?.notes ?? "",
     },
   });
 
   const onSubmit = (data: BookPreparationData) => {
-    mutate(data);
+    if (bookPrep) {
+      updateBookPrep({ ...data, id: bookPrep.id });
+    } else {
+      mutate(data);
+    }
+    onCloseSheet();
+  };
+
+  const onCloseSheet = () => {
     form.reset();
+    if (bookPrep) {
+      onClose();
+    } else {
+      closeNewBookPrep();
+    }
   };
 
   return (
@@ -67,7 +95,7 @@ export default function BookPreparationsForm() {
         />
         <Button type="submit">
           <Book />
-          Siapkan Buku
+          {bookPrep ? "Update " : "Siapkan Buku"}
         </Button>
       </form>
     </Form>

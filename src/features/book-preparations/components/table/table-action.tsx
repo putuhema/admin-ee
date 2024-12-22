@@ -13,9 +13,9 @@ import {
 import Link from "next/link";
 import { Delete, Eye, MoreHorizontal, PenLine } from "lucide-react";
 
-// import { useDeleteStudent } from "@/features/students/queries/delete-student";
 import { useConfirm } from "@/hooks/use-confirm";
 import useEditBookPreps from "@/features/book-preparations/hooks/use-edit-dialog";
+import { useDeleteBookPreparation } from "@/features/book-preparations/queries/delete-bookprep";
 
 type Props = {
   id: number;
@@ -27,14 +27,14 @@ export default function TableAction({ id }: Props) {
     title: "Delete Student",
     message: "Are you sure you want to delete this student?",
   });
-  // const { mutate: deleteStudent } = useDeleteStudent();
+  const { mutate: deleteBookprep } = useDeleteBookPreparation();
 
-  // const handleDelete = async () => {
-  //   const confirmed = await confirm();
-  //   if (confirmed) {
-  //     deleteStudent({ id: studentId });
-  //   }
-  // };
+  const handleDelete = async () => {
+    const confirmed = await confirm();
+    if (confirmed) {
+      deleteBookprep({ id });
+    }
+  };
 
   const handleEdit = () => {
     onOpen(id);
@@ -61,7 +61,7 @@ export default function TableAction({ id }: Props) {
             <PenLine />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDelete}>
             <Delete />
             Delete
           </DropdownMenuItem>

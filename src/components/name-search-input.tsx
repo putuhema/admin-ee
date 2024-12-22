@@ -24,7 +24,9 @@ export default function NameSearchInput<T extends FieldValues>({
   form,
   name,
 }: Props<T>) {
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState(
+    form.getValues(name) ?? ""
+  );
   const [isOpen, setIsOpen] = React.useState(true);
   const debounceName = useDebounce(searchTerm, 500);
   const { data: students, isLoading } = useGetStudentsWithQuery(debounceName);
