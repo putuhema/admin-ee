@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import type { Student } from "../types";
-import { TableInstance } from "./student-table-wrapper";
 
 import {
   Tooltip,
@@ -10,43 +8,45 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { FilterIcon, PlusIcon, TrashIcon, TriangleAlert } from "lucide-react";
-import { StudentSearch } from "./student-table-search";
 import ColumnSelection from "@/components/column-selection";
-import { StudentTable } from "./student-table";
 import { cn } from "@/lib/utils";
-import TablePagination from "./student-table-pagination";
-import useNewStudent from "../hooks/use-new-student";
-import { useBulkDeleteStudents } from "../queries/bulk-delete";
 import { useConfirm } from "@/hooks/use-confirm";
+import { BookPrep } from "../../types";
+import { TableInstance } from "./table-wrapper";
+import { Table } from "./table";
+import { TableSearch } from "./table-search";
+import TablePagination from "./table-pagination";
+import { useBulkDeleteStudents } from "@/features/students/queries/bulk-delete";
+import usenewBookPreparations from "@/features/book-preparations/hooks/use-new-preparations";
 
-interface StudentTableContainerProps {
-  onSelectStudent: (student: Student) => void;
-  selectedStudent: Student | null;
+interface TableContainerProps {
+  onSelectItem: (item: BookPrep) => void;
+  selectedItem: BookPrep | null;
   visibleColumns: string[];
 }
 
-export const StudentTableContainer = ({
-  onSelectStudent,
-  selectedStudent,
+export const TableContainer = ({
+  onSelectItem,
+  selectedItem,
   visibleColumns,
-}: StudentTableContainerProps) => {
-  const { onOpen } = useNewStudent();
+}: TableContainerProps) => {
+  const { onOpen } = usenewBookPreparations();
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const { mutate: deleteStudents } = useBulkDeleteStudents();
   const [ConfirmationDialog, confirm] = useConfirm({
     title: "Are you sure?",
-    message: "The selected students will get deleted permanently.",
+    message: "The selected book preparations will get deleted permanently.",
   });
 
   return (
     <div
       className="py-2"
       role="region"
-      aria-label="Student management interface"
+      aria-label="Book Preparations management interface"
     >
       <TableInstance visibleColumns={visibleColumns}>
         {(table, totalCount, isLoading, error) => {
-          const selectedStudents = table
+          const selectedItems = table
             .getRowModel()
             .rows.filter((row) => row.getIsSelected());
 
@@ -54,13 +54,13 @@ export const StudentTableContainer = ({
             <>
               <TableToolbar
                 onOpen={onOpen}
-                selectedStudent={selectedStudent}
-                selectedStudents={selectedStudents}
+                selectedItem={selectedItem}
+                selectedItems={selectedItems}
                 isFilterOpen={isFilterOpen}
                 setIsFilterOpen={setIsFilterOpen}
-                onDeleteStudents={createDeleteTasksHandler(
+                onDeleteItems={createDeleteTasksHandler(
                   table,
-                  selectedStudents,
+                  selectedItems,
                   confirm,
                   deleteStudents
                 )}
@@ -74,7 +74,7 @@ export const StudentTableContainer = ({
                   table={table}
                   totalCount={totalCount}
                   isLoading={isLoading}
-                  onSelectStudentAction={onSelectStudent}
+                  onSelectAction={onSelectItem}
                 />
               )}
             </>
@@ -88,21 +88,21 @@ export const StudentTableContainer = ({
 
 interface TableToolbarProps {
   onOpen: () => void;
-  selectedStudent: Student | null;
-  selectedStudents: any[];
+  selectedItem: BookPrep | null;
+  selectedItems: any[];
   isFilterOpen: boolean;
   setIsFilterOpen: (value: boolean) => void;
-  onDeleteStudents: () => Promise<void>;
+  onDeleteItems: () => Promise<void>;
   table: any;
 }
 
 const TableToolbar: React.FC<TableToolbarProps> = ({
   onOpen,
-  selectedStudent,
-  selectedStudents,
+  selectedItem,
+  selectedItems,
   isFilterOpen,
   setIsFilterOpen,
-  onDeleteStudents,
+  onDeleteItems,
   table,
 }) => (
   <div className="mb-4 flex flex-col items-start justify-between gap-4 md:flex-row">
@@ -116,19 +116,16 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             aria-label="Add new student"
           >
             <PlusIcon className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden md:block">Add Student</span>
+            <span className="hidden md:block">Prep Book</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Add new student</TooltipContent>
+        <TooltipContent>Prepare new book</TooltipContent>
       </Tooltip>
-      <StudentSearch />
+      <TableSearch />
     </div>
     <div className="flex w-full items-center justify-end gap-2">
       <div>
-        <DeleteButton
-          selectedStudents={selectedStudents}
-          onDelete={onDeleteStudents}
-        />
+        <DeleteButton selectedItems={selectedItems} onDelete={onDeleteItems} />
       </div>
       <div>
         <Tooltip>
@@ -136,7 +133,7 @@ const TableToolbar: React.FC<TableToolbarProps> = ({
             <FilterButton
               isFilterOpen={isFilterOpen}
               setIsFilterOpen={setIsFilterOpen}
-              selectedStudent={selectedStudent}
+              selectedItem={selectedItem}
             />
           </TooltipTrigger>
           <TooltipContent>Filter tasks</TooltipContent>
@@ -165,32 +162,32 @@ const TableContent: React.FC<{
   table: any;
   totalCount: number;
   isLoading: boolean;
-  onSelectStudentAction: (student: Student) => void;
-}> = ({ table, totalCount, isLoading, onSelectStudentAction }) => (
+  onSelectAction: (items: BookPrep) => void;
+}> = ({ table, totalCount, isLoading, onSelectAction }) => (
   <>
-    <StudentTable
+    <Table
       table={table}
       isLoading={isLoading}
-      onSelectStudentAction={onSelectStudentAction}
+      onSelectAction={onSelectAction}
     />
     <TablePagination table={table} totalResults={totalCount} />
   </>
 );
 
 const DeleteButton: React.FC<{
-  selectedStudents: any[];
+  selectedItems: any[];
   onDelete: () => Promise<void>;
-}> = ({ selectedStudents, onDelete }) =>
-  selectedStudents.length > 0 ? (
+}> = ({ selectedItems, onDelete }) =>
+  selectedItems.length > 0 ? (
     <Button
       variant="destructive"
       className="flex items-center gap-2"
       onClick={onDelete}
-      aria-label={`Delete ${selectedStudents.length} selected students`}
+      aria-label={`Delete ${selectedItems.length} selected students`}
     >
       <TrashIcon className="h-4 w-4" aria-hidden="true" />
       <span className="hidden md:block">
-        {`Delete (${selectedStudents.length})`}
+        {`Delete (${selectedItems.length})`}
       </span>
     </Button>
   ) : null;
@@ -198,13 +195,13 @@ const DeleteButton: React.FC<{
 const FilterButton: React.FC<{
   isFilterOpen: boolean;
   setIsFilterOpen: (value: boolean) => void;
-  selectedStudent: Student | null;
-}> = ({ isFilterOpen, setIsFilterOpen, selectedStudent }) => (
+  selectedItem: BookPrep | null;
+}> = ({ isFilterOpen, setIsFilterOpen, selectedItem }) => (
   <Button
     variant="outline"
     className={cn(
       "flex items-center gap-2 lg:hidden",
-      selectedStudent ? "lg:flex" : ""
+      selectedItem ? "lg:flex" : ""
     )}
     onClick={() => setIsFilterOpen(!isFilterOpen)}
     aria-label="Toggle filter panel"
@@ -225,7 +222,7 @@ const ErrorMessage: React.FC = () => (
   </div>
 );
 
-// const ExportButton: React.FC<{ selectedStudent: Student | null }> = ({
+// const ExportButton: React.FC<{ selectedStudent: BookPrep | null }> = ({
 //   selectedStudent,
 // }) =>
 //   !selectedStudent ? (

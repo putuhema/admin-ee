@@ -60,23 +60,9 @@ const data = {
       icon: BookOpen,
     },
     {
-      title: "Payments",
-      url: "#",
-      icon: HandCoins,
-      items: [
-        {
-          title: "Monthly",
-          url: "#",
-        },
-        {
-          title: "Books",
-          url: "#",
-        },
-        {
-          title: "Certificate & Trophy",
-          url: "#",
-        },
-      ],
+      title: "Book Preparations",
+      url: "/dashboard/book-preparations",
+      icon: BookOpen,
     },
   ],
 };

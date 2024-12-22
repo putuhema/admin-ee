@@ -1,6 +1,6 @@
-import AnimatedBackground from "@/components/ui/animated-background";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
+import AnimatedBackground from "@/components/ui/animated-background";
 
 const links = [
   {
@@ -9,14 +9,14 @@ const links = [
     link: "/",
   },
   {
+    img: "book",
+    title: "Book",
+    link: "/book-preparations",
+  },
+  {
     img: "graduate",
     title: "Form",
     link: "/enrollment-form",
-  },
-  {
-    img: "book",
-    title: "Prep",
-    link: "/book-preparations",
   },
   {
     img: "graduate",

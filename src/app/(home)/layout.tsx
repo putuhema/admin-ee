@@ -1,4 +1,5 @@
 import MainNav from "@/components/main-nav";
+import { UserButton } from "@/components/user-button";
 import { UserType } from "@/db/schema";
 
 import { auth } from "@/lib/auth";
@@ -16,7 +17,10 @@ export default async function HomeLayout({
   }
 
   return (
-    <main className="p-4 mt-8 pb-32">
+    <main className="p-4 mt-10 pb-32">
+      <div className="fixed top-0 right-0 p-4">
+        <UserButton user={session.user as unknown as UserType} />
+      </div>
       <MainNav user={session.user as unknown as UserType} />
       {children}
     </main>

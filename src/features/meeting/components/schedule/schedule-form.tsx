@@ -35,7 +35,6 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { usePostSchedule } from "@/features/meeting/queries/post-meeting";
-import { fi } from "date-fns/locale";
 
 export function ScheduleForm() {
   const form = useForm<MeetingType>({
@@ -109,7 +108,7 @@ export function ScheduleForm() {
   const handleRenderSelectedItem = (
     values: string[],
     options: { label: string; value: string }[],
-    items: number = 3,
+    items: number = 3
   ): string => {
     if (values.length === 0) return "";
 
@@ -175,7 +174,7 @@ export function ScheduleForm() {
                     variant={"outline"}
                     className={cn(
                       "w-full pl-3 text-left font-normal",
-                      !date && "text-muted-foreground",
+                      !date && "text-muted-foreground"
                     )}
                   >
                     {date ? format(date, "PPP") : <span>Pick a date</span>}

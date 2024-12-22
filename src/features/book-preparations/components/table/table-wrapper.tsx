@@ -12,17 +12,17 @@ import {
 } from "@tanstack/react-table";
 
 import { DEFAULT_PAGE_SIZE } from "@/constants";
-import { useStudentFiltersStore } from "@/features/students/store";
-import { useGetStudents } from "@/features/students/queries/use-get-students";
-import { studentColumns as columns } from "./student-column";
-import { Student } from "../types";
+import { bookPrepColumns as columns } from "./column";
+import { BookPrep } from "@/features/book-preparations/types";
+import { useBookPrepFiltersStore } from "@/features/book-preparations/hooks/useFilterBookPrep";
+import { useGetBookPreps } from "@/features/book-preparations/queries/get-book-preparations";
 
 interface TableInstanceProps {
   children: (
-    table: Table<Student>,
+    table: Table<BookPrep>,
     totalCount: number,
     isLoading: boolean,
-    error: Error | null,
+    error: Error | null
   ) => React.ReactNode;
   visibleColumns: string[];
 }
@@ -39,9 +39,9 @@ export const TableInstance = ({
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const { appliedFilters } = useStudentFiltersStore();
+  const { appliedFilters } = useBookPrepFiltersStore();
 
-  const { data, isLoading, error } = useGetStudents(
+  const { data, isLoading, error } = useGetBookPreps(
     pagination.pageSize,
     pagination.pageIndex * pagination.pageSize,
     {
@@ -49,27 +49,19 @@ export const TableInstance = ({
       order:
         sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : undefined,
       sort: sorting.length > 0 ? sorting[0].id : undefined,
-    },
+    }
   );
 
   const totalCount = data?.pagination.total || 0;
 
-  const students =
-    data?.students.map((student) => ({
-      ...student,
-      dateOfBirth: new Date(student.dateOfBirth),
-      createdAt: new Date(student.createdAt),
-      updatedAt: new Date(student.updatedAt),
-      isDeleted: false,
-      deletedAt: null,
-    })) || [];
+  const bookPreps = data?.bookPreps || [];
 
-  const table = useReactTable<Student>({
-    data: students,
+  const table = useReactTable<BookPrep>({
+    data: bookPreps,
     columns: columns.filter(
       (column) =>
         "accessorKey" in column &&
-        visibleColumns.includes(column.accessorKey as string),
+        visibleColumns.includes(column.accessorKey as string)
     ),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -93,7 +85,7 @@ export const TableInstance = ({
   });
 
   return (
-    <div role="region" aria-label="Student table container">
+    <div role="region" aria-label="Book Preparations table container">
       {children(table, totalCount, isLoading, error)}
     </div>
   );

@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 
 import {
-  Table,
+  Table as TableContainer,
   TableBody,
   TableCell,
   TableHead,
@@ -22,26 +22,22 @@ import { ArrowDownNarrowWideIcon, ArrowUpWideNarrowIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { DEFAULT_PAGE_SIZE } from "@/constants";
-import { Student } from "../types";
+import { BookPrep } from "@/features/book-preparations/types";
 
-interface StudentTableProps {
-  table: TableType<Student>;
+interface TableProps {
+  table: TableType<BookPrep>;
   isLoading: boolean;
-  onSelectStudentAction: (student: Student) => void;
+  onSelectAction: (bookPreps: BookPrep) => void;
 }
 
-export const StudentTable = ({
-  table,
-  isLoading,
-  onSelectStudentAction,
-}: StudentTableProps) => {
+export const Table = ({ table, isLoading, onSelectAction }: TableProps) => {
   return (
     <div
       className="relative h-[calc(100vh-16rem)] overflow-y-auto border border-stone-300 md:h-[calc(100vh-12rem)]"
       role="region"
       aria-label="Tasks table"
     >
-      <Table className="min-w-full">
+      <TableContainer className="min-w-full">
         <TableHeader className="bg-gray-200">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} role="row">
@@ -63,9 +59,9 @@ export const StudentTable = ({
         </TableHeader>
 
         <TableBody className="overflow-y-auto">
-          {renderTableContent(table, isLoading, onSelectStudentAction)}
+          {renderTableContent(table, isLoading, onSelectAction)}
         </TableBody>
-      </Table>
+      </TableContainer>
     </div>
   );
 };
@@ -100,13 +96,13 @@ const renderSortIcon = (sortDirection: false | "asc" | "desc") => {
 };
 
 const renderTableContent = (
-  table: TableType<Student>,
+  table: TableType<BookPrep>,
   isLoading: boolean,
-  onSelectStudent: (student: Student) => void
+  onSelect: (bookPrep: BookPrep) => void
 ) => {
   if (isLoading) {
     return (
-      <StudentTableSkeleton
+      <TableSkeleton
         rows={DEFAULT_PAGE_SIZE}
         columns={table.getAllColumns().map((col) => col.columnDef)}
       />
@@ -127,7 +123,7 @@ const renderTableContent = (
         <TableCell
           key={cell.id}
           className={getCellClassName(cell)}
-          onClick={() => handleCellClick(cell, row, onSelectStudent)}
+          onClick={() => handleCellClick(cell, row, onSelect)}
           role="cell"
         >
           {renderCellContent(cell)}
@@ -149,15 +145,12 @@ const EmptyTableMessage: React.FC<{ colSpan: number }> = ({ colSpan }) => (
   </TableRow>
 );
 
-interface StudentTableSkeletonProps {
+interface TableSkeletonProps {
   rows: number;
-  columns: ColumnDef<Student>[];
+  columns: ColumnDef<BookPrep>[];
 }
 
-const StudentTableSkeleton: React.FC<StudentTableSkeletonProps> = ({
-  rows,
-  columns,
-}) => (
+const TableSkeleton: React.FC<TableSkeletonProps> = ({ rows, columns }) => (
   <>
     {Array.from({ length: rows }).map((_, rowIndex) => (
       <TableRow key={rowIndex} role="row">
@@ -210,7 +203,7 @@ const renderCellContent = (cell: any) =>
 const handleCellClick = (
   cell: any,
   row: any,
-  onSelectTask: (task: Student) => void
+  onSelect: (bookPrep: BookPrep) => void
 ) => {
   if (
     row.original.optimisticStatus === "creating" ||
@@ -219,5 +212,5 @@ const handleCellClick = (
   ) {
     return;
   }
-  onSelectTask(row.original);
+  onSelect(row.original);
 };

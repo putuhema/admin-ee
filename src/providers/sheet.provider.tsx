@@ -7,6 +7,7 @@ import { UpdateStudentSheet } from "@/features/students/components/update-studen
 import { NewStudentSheet } from "@/features/students/components/add-student/new-student-sheet";
 import { NewEnrollmentSheet } from "@/features/enrollment/components/add-enrollement/new-enrollment-sheet";
 import { DetailsEnrollmentSheet } from "@/features/enrollment/components/details-enrollment/details-enrollment-sheet";
+import { NewBookPreparationsSheet } from "@/features/book-preparations/components/create-book-preparations-sheet";
 
 export default function SheetProvider() {
   const isClient = useIsClient();
@@ -21,6 +22,7 @@ export default function SheetProvider() {
       <UpdateStudentSheet />
       <NewEnrollmentSheet />
       <DetailsEnrollmentSheet />
+      <NewBookPreparationsSheet />
     </div>
   );
 }

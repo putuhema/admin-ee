@@ -86,7 +86,7 @@ export const Student = pgTable(
   (t) => [
     uniqueIndex("unique_student_idx").on(t.name),
     index("student_name_idx").on(t.name),
-  ],
+  ]
 );
 
 export const studentSchema = createSelectSchema(Student);
@@ -114,7 +114,7 @@ export const Guardian = pgTable(
     uniqueIndex("unique_guardian_idx")
       .on(t.id)
       .where(sql`is_primary = true`),
-  ],
+  ]
 );
 
 export const StudentGuardian = pgTable(
@@ -138,7 +138,7 @@ export const StudentGuardian = pgTable(
   },
   (t) => [
     uniqueIndex("unique_student_guardian_idx").on(t.studentId, t.guardianId),
-  ],
+  ]
 );
 
 export type StudentType = typeof Student.$inferSelect;
@@ -156,7 +156,7 @@ export const Program = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("program_name_idx").on(t.name)],
+  (t) => [index("program_name_idx").on(t.name)]
 );
 
 export const ProgramExtra = pgTable(
@@ -177,7 +177,7 @@ export const ProgramExtra = pgTable(
   },
   (t) => [
     uniqueIndex("program_extra_program_id_type_idx").on(t.programId, t.type),
-  ],
+  ]
 );
 
 export const EnrollmentStatus = pgEnum("enrollment_status", [
@@ -194,7 +194,7 @@ export const Enrollment = pgTable(
     programId: integer("program_id").references(() => Program.id),
     orderId: integer("order_id").references(() => Order.id),
     meetingPackageId: integer("meeting_package_id").references(
-      () => MeetingPackage.id,
+      () => MeetingPackage.id
     ),
     meetingQty: integer("meeting_qty").notNull(),
     meetingLeft: integer("meeting_left").notNull(),
@@ -206,7 +206,7 @@ export const Enrollment = pgTable(
     index("student_idx").on(t.studentId),
     index("program_idx").on(t.programId),
     index("package_idx").on(t.meetingPackageId),
-  ],
+  ]
 );
 
 export type EnrollmentInsert = typeof Enrollment.$inferInsert;
@@ -222,7 +222,7 @@ export const MeetingPackage = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
-  (t) => [index("meeteng_package_name_idx").on(t.name)],
+  (t) => [index("meeteng_package_name_idx").on(t.name)]
 );
 
 export const ProductStatus = pgEnum("product_status", ["active", "inactive"]);
@@ -238,7 +238,7 @@ export const Product = pgTable(
     status: ProductStatus("status"),
     description: text("description"),
   },
-  (t) => [index("product_name_idx").on(t.name)],
+  (t) => [index("product_name_idx").on(t.name)]
 );
 
 export type ProductInsert = typeof Product.$inferInsert;
@@ -348,15 +348,27 @@ export const BookStatus = pgEnum("book_status", [
 
 export const BookPreparationStatus = pgTable("book_preparation_status", {
   id: serial("id").primaryKey(),
-  studentId: integer("student_id").references(() => Student.id),
-  programId: integer("program_id").references(() => Program.id),
+  studentId: integer("student_id")
+    .references(() => Student.id)
+    .notNull(),
+  programId: integer("program_id")
+    .references(() => Program.id)
+    .notNull(),
   prepareDate: timestamp("prepare_date", { withTimezone: true }),
   paidDate: timestamp("paid_date", { withTimezone: true }),
-  status: BookStatus("status"),
-  notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  deliveredDate: timestamp("delivered_date", { withTimezone: true }),
+  status: BookStatus("status").notNull(),
+  notes: text("notes").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
+
+export type BookPreparationData = typeof BookPreparationStatus.$inferSelect;
+export type BookPrepInsert = typeof BookPreparationStatus.$inferInsert;
 
 // Relations start here
 export const userRelations = relations(user, ({ many }) => ({
@@ -386,7 +398,7 @@ export const studentGuardianRelations = relations(
       fields: [StudentGuardian.guardianId],
       references: [Guardian.id],
     }),
-  }),
+  })
 );
 
 export const programRelations = relations(Program, ({ many }) => ({
@@ -494,5 +506,5 @@ export const bookPreparationStatusRelations = relations(
       fields: [BookPreparationStatus.programId],
       references: [Program.id],
     }),
-  }),
+  })
 );
