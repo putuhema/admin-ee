@@ -25,16 +25,21 @@ import { BookPrepData } from "../../queries/get-book-preparation";
 import { useUpdateBookPreparation } from "../../queries/put-bookprep";
 import useEditBookPreps from "../../hooks/use-edit-dialog";
 import usenewBookPreparations from "../../hooks/use-new-preparations";
+import { cn } from "@/lib/utils";
+import useOpenDrawer from "../../hooks/user-open-drawer";
 
 interface BookPreparationsFormProps {
   bookPrep?: BookPrepData | undefined;
+  drawer?: boolean | undefined;
 }
 
 export default function BookPreparationsForm({
   bookPrep,
+  drawer,
 }: BookPreparationsFormProps) {
   const { onClose } = useEditBookPreps();
   const { onClose: closeNewBookPrep } = usenewBookPreparations();
+  const { onClose: closeDrawer } = useOpenDrawer();
 
   const { mutate } = useCreateBookPreparations();
   const { mutate: updateBookPrep } = useUpdateBookPreparation();
@@ -62,6 +67,7 @@ export default function BookPreparationsForm({
     if (bookPrep) {
       onClose();
     } else {
+      closeDrawer();
       closeNewBookPrep();
     }
   };
@@ -69,7 +75,7 @@ export default function BookPreparationsForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-2 gap-4", drawer && "grid-cols-1")}>
           <NameSearchInput form={form} name="studentId" />
           <ProgramSelect form={form} />
         </div>
@@ -93,7 +99,7 @@ export default function BookPreparationsForm({
             </FormItem>
           )}
         />
-        <Button type="submit">
+        <Button type="submit" className={cn(drawer && "w-full")}>
           <Book />
           {bookPrep ? "Update " : "Siapkan Buku"}
         </Button>

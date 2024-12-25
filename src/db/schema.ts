@@ -357,6 +357,7 @@ export const BookPreparationStatus = pgTable("book_preparation_status", {
   prepareDate: timestamp("prepare_date", { withTimezone: true }),
   paidDate: timestamp("paid_date", { withTimezone: true }),
   deliveredDate: timestamp("delivered_date", { withTimezone: true }),
+  price: integer("price").notNull(),
   status: BookStatus("status").notNull(),
   notes: text("notes").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })

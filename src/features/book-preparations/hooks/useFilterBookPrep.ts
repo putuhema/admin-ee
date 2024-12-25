@@ -12,7 +12,7 @@ interface BookPrepFiltersStoreState {
   offset?: number;
   sorting?: SortingState;
   setFilter: (filter: BookPrepFiltersState) => void;
-  setSearch: (search: string) => void;
+  setValue: (key: keyof BookPrepFiltersState, value: string) => void;
   setLimit: (limit: number) => void;
   setOffset: (offset: number) => void;
   clearFilters: () => void;
@@ -24,11 +24,15 @@ export const useBookPrepFiltersStore = create<BookPrepFiltersStoreState>(
     offset: 0,
     appliedFilters: {
       search: "",
+      program: "",
+      status: "",
       sort: undefined,
       order: undefined,
     },
     filter: {
       search: "",
+      program: "",
+      status: "",
     },
     setFilter: (filter: BookPrepFiltersState) => {
       const currentFilter = get().filter;
@@ -43,15 +47,17 @@ export const useBookPrepFiltersStore = create<BookPrepFiltersStoreState>(
 
       set({ filter: newFilter, appliedFilters });
     },
-
-    setSearch: (search?: string) => {
+    setValue: (key: keyof BookPrepFiltersState, value: string) => {
       const currentFilter = get().filter;
       const currentAppliedFilters = get().appliedFilters;
+      const newFilter = { ...currentFilter, [key]: value };
 
-      set({
-        filter: { ...currentFilter, search },
-        appliedFilters: { ...currentAppliedFilters, search },
-      });
+      const appliedFilters = {
+        ...currentAppliedFilters,
+        [key]: value,
+      };
+
+      set({ filter: newFilter, appliedFilters });
     },
     setLimit: (limit?: number) => set({ limit }),
     setOffset: (offset?: number) => set({ offset }),
@@ -64,5 +70,5 @@ export const useBookPrepFiltersStore = create<BookPrepFiltersStoreState>(
           search: "",
         },
       }),
-  }),
+  })
 );

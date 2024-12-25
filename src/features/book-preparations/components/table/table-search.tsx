@@ -1,24 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useDebounce } from "@uidotdev/usehooks";
+import React, { useState } from "react";
 import { SearchIcon, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { useBookPrepFiltersStore } from "../../hooks/useFilterBookPrep";
 
-const DEBOUNCE_DELAY = 500;
-
 export const TableSearch = () => {
   const [search, setSearch] = useState<string>("");
 
-  const { setSearch: setSearchStore } = useBookPrepFiltersStore();
-
-  const debouncedSearch = useDebounce(search, DEBOUNCE_DELAY);
-
-  useEffect(() => {
-    setSearchStore(debouncedSearch);
-  }, [debouncedSearch, setSearchStore]);
+  const { setValue: setSearchStore, appliedFilters } =
+    useBookPrepFiltersStore();
 
   const handleClearSearch = () => {
     setSearch("");
@@ -41,8 +33,8 @@ export const TableSearch = () => {
 
       <Input
         name="book-preparations-search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={appliedFilters.search}
+        onChange={(e) => setSearchStore("search", e.target.value)}
         className="w-full pl-10 pr-10"
         placeholder="Search book preparations"
         aria-label="Search book preparations"

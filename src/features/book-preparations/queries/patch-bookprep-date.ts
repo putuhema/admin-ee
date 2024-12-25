@@ -4,19 +4,19 @@ import { InferRequestType, InferResponseType } from "hono";
 import { bookPrepKeys } from "./keys";
 import { toast } from "sonner";
 
-const $patch = client.api["book-preparations"]["status"]["$patch"];
+const $patch = client.api["book-preparations"]["date"]["$patch"];
 
 type Response = InferResponseType<typeof $patch, 200>;
 type Request = InferRequestType<typeof $patch>["json"];
 
-export function useUpdateBookPrepStatus() {
+export function useUpdateBookPrepDate() {
   const queryClient = useQueryClient();
   return useMutation<Response, Error, Request>({
     mutationFn: async (formData) => {
       const res = await $patch({ json: formData });
 
       if (!res.ok) {
-        throw new Error("Failed to update book preparation status");
+        throw new Error("Failed to update book preparation date");
       }
 
       const data = await res.json();

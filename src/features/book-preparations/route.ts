@@ -6,11 +6,12 @@ import {
   BookPreparationStatus,
   BookPrepInsert,
   Order,
+  Payment,
   Program,
   ProgramExtra,
   Student,
 } from "@/db/schema";
-import { and, AnyColumn, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, AnyColumn, asc, desc, eq, inArray, SQL, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const app = new Hono()
@@ -22,78 +23,89 @@ const app = new Hono()
         limit: z.coerce.number().optional().default(10),
         offset: z.coerce.number().optional().default(0),
         search: z.string().optional(),
+        program: z.string().optional(),
+        status: z.enum(["pending", "prepared", "paid", "delivered"]).optional(),
         sort: z.enum(["name", "nickname", "dateOfBirth"]).optional(),
         order: z.enum(["asc", "desc"]).optional().default("desc"),
       })
     ),
     async (c) => {
       try {
-        // TODO: filtering is not working
-        const { limit, offset, search, sort, order } = c.req.valid("query");
-        const buildBaseQuery = () =>
-          db
-            .select({
-              id: BookPreparationStatus.id,
-              program: { id: Program.id, name: Program.name },
-              student: {
-                id: Student.id,
-                name: Student.name,
-                nickname: Student.nickname,
-              },
-              prepareDate: BookPreparationStatus.prepareDate,
-              paidDate: BookPreparationStatus.paidDate,
-              deliveredDate: BookPreparationStatus.deliveredDate,
-              notes: BookPreparationStatus.notes,
-              status: BookPreparationStatus.status,
-            })
-            .from(BookPreparationStatus)
-            .leftJoin(Student, eq(Student.id, BookPreparationStatus.studentId))
-            .leftJoin(Program, eq(Program.id, BookPreparationStatus.programId));
+        const { limit, offset, search, status, program, sort, order } =
+          c.req.valid("query");
 
-        const searchCondition = search
-          ? sql`LOWER(${
-              Student.name
-            }::text) LIKE ${`%${search.toLowerCase()}%`} OR LOWER(${
-              Student.nickname
-            }::text) LIKE ${`%${search.toLowerCase()}%`}`
-          : undefined;
-
-        const getSortClause = () => {
-          if (!sort) return desc(BookPreparationStatus.createdAt);
-          if (sort === "name") {
-            return order === "desc"
-              ? sql`student.name desc`
-              : sql`student.name asc`;
-          }
-          const sortColumn = BookPreparationStatus[
-            sort as keyof typeof BookPreparationStatus
-          ] as AnyColumn;
-          return order === "desc" ? desc(sortColumn) : asc(sortColumn);
+        const baseSelection = {
+          id: BookPreparationStatus.id,
+          program: { id: Program.id, name: Program.name },
+          student: {
+            id: Student.id,
+            name: Student.name,
+            nickname: Student.nickname,
+          },
+          prepareDate: BookPreparationStatus.prepareDate,
+          paidDate: BookPreparationStatus.paidDate,
+          deliveredDate: BookPreparationStatus.deliveredDate,
+          notes: BookPreparationStatus.notes,
+          status: BookPreparationStatus.status,
+          price: BookPreparationStatus.price,
         };
 
+        const conditions: SQL[] = [];
+
+        if (search) {
+          const searchTerm = `%${search.toLowerCase()}%`;
+          conditions.push(
+            sql`(LOWER(${Student.name}::text) LIKE ${searchTerm} OR LOWER(${Student.nickname}::text) LIKE ${searchTerm})`
+          );
+        }
+
+        if (status) conditions.push(eq(BookPreparationStatus.status, status));
+        if (program) conditions.push(eq(Program.id, Number(program)));
+
+        const sortClause = !sort
+          ? desc(BookPreparationStatus.createdAt)
+          : sort === "name" || sort === "nickname"
+          ? order === "desc"
+            ? desc(Student[sort])
+            : asc(Student[sort])
+          : order === "desc"
+          ? desc(
+              BookPreparationStatus[
+                sort as keyof typeof BookPreparationStatus
+              ] as AnyColumn
+            )
+          : asc(
+              BookPreparationStatus[
+                sort as keyof typeof BookPreparationStatus
+              ] as AnyColumn
+            );
+
+        const baseQuery = db
+          .select(baseSelection)
+          .from(BookPreparationStatus)
+          .leftJoin(Student, eq(Student.id, BookPreparationStatus.studentId))
+          .leftJoin(Program, eq(Program.id, BookPreparationStatus.programId));
+
+        const whereClause = conditions.length ? and(...conditions) : undefined;
         const [bookPreps, [{ count }]] = await Promise.all([
-          buildBaseQuery()
-            .where(searchCondition)
-            .orderBy(getSortClause())
+          baseQuery
+            .where(whereClause)
+            .orderBy(sortClause)
             .limit(limit)
             .offset(offset),
 
           db
-            .select({
-              count: sql`count(${BookPreparationStatus.id})`,
-            })
+            .select({ count: sql`count(${BookPreparationStatus.id})` })
             .from(BookPreparationStatus)
-            .where(searchCondition),
+            .leftJoin(Student, eq(Student.id, BookPreparationStatus.studentId))
+            .leftJoin(Program, eq(Program.id, BookPreparationStatus.programId))
+            .where(whereClause),
         ]);
 
         return c.json(
           {
             bookPreps,
-            pagination: {
-              total: Number(count),
-              limit,
-              offset,
-            },
+            pagination: { total: Number(count), limit, offset },
           },
           200
         );
@@ -145,16 +157,6 @@ const app = new Hono()
     const formData = c.req.valid("json");
 
     const result = await db.transaction(async (tx) => {
-      const bookPrepare = await tx
-        .insert(BookPreparationStatus)
-        .values({
-          studentId: Number(formData.studentId),
-          programId: Number(formData.programId),
-          notes: formData.notes,
-          status: "pending",
-        })
-        .returning();
-
       const program = await tx
         .select({
           name: Program.name,
@@ -175,12 +177,32 @@ const app = new Hono()
         return c.json("Program not found", 404);
       }
 
-      await tx.insert(Order).values({
-        studentId: Number(formData.studentId),
-        totalAmount: program[0].bookPrice!,
-        notes: `preparing ${formData.notes} for ${program[0].name}.`,
+      const bookPrepare = await tx
+        .insert(BookPreparationStatus)
+        .values({
+          studentId: Number(formData.studentId),
+          programId: Number(formData.programId),
+          notes: formData.notes,
+          status: "pending",
+          price: program[0].bookPrice!,
+        })
+        .returning();
+
+      const order = await tx
+        .insert(Order)
+        .values({
+          studentId: Number(formData.studentId),
+          totalAmount: program[0].bookPrice!,
+          notes: "bookprep",
+          status: "pending",
+          orderDate: new Date(),
+        })
+        .returning();
+
+      await tx.insert(Payment).values({
+        orderId: order[0].id,
+        amount: program[0].bookPrice!,
         status: "pending",
-        orderDate: new Date(),
       });
 
       return bookPrepare;
@@ -237,16 +259,100 @@ const app = new Hono()
       try {
         const { id, status } = c.req.valid("json");
 
-        const bookPrep: Partial<BookPrepInsert> = {
-          status,
-          ...(status === "prepared" && { prepareDate: new Date() }),
-          ...(status === "paid" && { paidDate: new Date() }),
-          ...(status === "delivered" && { deliveredDate: new Date() }),
-        };
+        const updatedBooks = await db.transaction(async (tx) => {
+          const currentBookPrep = await tx
+            .select({
+              prepareDate: BookPreparationStatus.prepareDate,
+              paidDate: BookPreparationStatus.paidDate,
+              deliveredDate: BookPreparationStatus.deliveredDate,
+            })
+            .from(BookPreparationStatus)
+            .where(eq(BookPreparationStatus.id, id))
+            .limit(1);
+
+          if (currentBookPrep.length === 0) {
+            return c.json({ error: "Book Preparations not found" }, 404);
+          }
+
+          const bookPrep: Partial<BookPrepInsert> = {
+            status,
+            ...(status === "prepared" && { prepareDate: new Date() }),
+            ...(status === "paid" && { paidDate: new Date() }),
+            ...(status === "delivered" && {
+              deliveredDate: new Date(),
+              ...(currentBookPrep[0].prepareDate === null && {
+                prepareDate: new Date(),
+              }),
+              ...(currentBookPrep[0].paidDate === null && {
+                paidDate: new Date(),
+              }),
+            }),
+          };
+
+          const updatedBooks = await tx
+            .update(BookPreparationStatus)
+            .set(bookPrep)
+            .where(eq(BookPreparationStatus.id, id))
+            .returning();
+
+          if (updatedBooks.length === 0) {
+            return c.json({ error: "Book Preparations not found" }, 404);
+          }
+
+          if (status === "delivered" || status === "paid") {
+            const order = await tx
+              .update(Order)
+              .set({ status: "completed" })
+              .where(
+                and(
+                  eq(Order.studentId, updatedBooks[0].studentId),
+                  eq(Order.notes, "bookprep")
+                )
+              )
+              .returning();
+
+            if (order.length >= 0) {
+              await tx
+                .update(Payment)
+                .set({ status: "completed" })
+                .where(eq(Payment.orderId, order[0].id))
+                .returning();
+            }
+          }
+
+          return updatedBooks;
+        });
+
+        return c.json({
+          message: "Status updated successfully",
+          data: updatedBooks,
+        });
+      } catch (error) {
+        console.error("Error updating book preparation status", error);
+
+        return c.json({ error: "Failed to update status" }, 500);
+      }
+    }
+  )
+  .patch(
+    "/date",
+    zValidator(
+      "json",
+      z.object({
+        id: z.number(),
+        date: z.coerce.date(),
+        type: z.enum(["prepare", "paid", "delivered"]),
+      })
+    ),
+    async (c) => {
+      try {
+        const { id, date, type } = c.req.valid("json");
 
         const updatedBooks = await db
           .update(BookPreparationStatus)
-          .set(bookPrep)
+          .set({
+            [`${type}Date`]: date,
+          })
           .where(eq(BookPreparationStatus.id, id))
           .returning();
 
@@ -255,12 +361,13 @@ const app = new Hono()
         }
 
         return c.json({
-          message: "Status updated successfully",
+          message: "Date updated successfully",
           data: updatedBooks[0],
         });
       } catch (error) {
-        console.error("Error updating book preparation status", error);
-        return c.json({ error: "Failed to update status" }, 500);
+        console.error("Error updating book preparation date", error);
+
+        return c.json({ error: "Failed to update date" }, 500);
       }
     }
   )
