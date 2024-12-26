@@ -371,6 +371,57 @@ export const BookPreparationStatus = pgTable("book_preparation_status", {
 export type BookPreparationData = typeof BookPreparationStatus.$inferSelect;
 export type BookPrepInsert = typeof BookPreparationStatus.$inferInsert;
 
+export const Subscription = pgTable("subscription", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id")
+    .references(() => Student.id)
+    .notNull(),
+  programId: integer("program_id")
+    .references(() => Program.id)
+    .notNull(),
+  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+  endDate: timestamp("end_date", { withTimezone: true }).notNull(),
+  isActive: boolean("is_active").default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const InvoiceStatus = pgEnum("invoice_status", [
+  "pending",
+  "paid",
+  "overdue",
+  "cancelled",
+]);
+
+export const MonthlyFee = pgTable("monthly_fee", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id")
+    .references(() => Student.id)
+    .notNull(),
+  programId: integer("program_id")
+    .references(() => Program.id)
+    .notNull(),
+  invoiceDate: timestamp("invoice_date", { withTimezone: true }).notNull(),
+  dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+  amount: integer("amount").notNull(),
+  status: InvoiceStatus("status").default("pending"),
+  paidDate: timestamp("paid_date", { withTimezone: true }),
+  paymentMethod: varchar("payment_method", { length: 255 }),
+  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 // Relations start here
 export const userRelations = relations(user, ({ many }) => ({
   meetingSessions: many(MeetingSession),
@@ -382,6 +433,8 @@ export const studentRelations = relations(Student, ({ many }) => ({
   meetings: many(Meeting),
   bookPreparations: many(BookPreparationStatus),
   guardians: many(StudentGuardian),
+  subscriptions: many(Subscription),
+  monthlyFees: many(MonthlyFee),
 }));
 
 export const guardianRelations = relations(Guardian, ({ many }) => ({
@@ -407,6 +460,8 @@ export const programRelations = relations(Program, ({ many }) => ({
   meetings: many(Meeting),
   bookPreparations: many(BookPreparationStatus),
   extra: many(ProgramExtra),
+  subscriptions: many(Subscription),
+  monthlyFees: many(MonthlyFee),
 }));
 
 export const programExtraRelations = relations(ProgramExtra, ({ one }) => ({
@@ -509,3 +564,25 @@ export const bookPreparationStatusRelations = relations(
     }),
   })
 );
+
+export const monthlyFeeRelations = relations(MonthlyFee, ({ one }) => ({
+  student: one(Student, {
+    fields: [MonthlyFee.studentId],
+    references: [Student.id],
+  }),
+  program: one(Program, {
+    fields: [MonthlyFee.programId],
+    references: [Program.id],
+  }),
+}));
+
+export const subscriptionRelations = relations(Subscription, ({ one }) => ({
+  student: one(Student, {
+    fields: [Subscription.studentId],
+    references: [Student.id],
+  }),
+  program: one(Program, {
+    fields: [Subscription.programId],
+    references: [Program.id],
+  }),
+}));

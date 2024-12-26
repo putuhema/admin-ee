@@ -41,7 +41,7 @@ export default function MainNav({ user }: MainNavProps) {
   if (isMobile) {
     return (
       <div className="fixed z-50 bottom-0 left-0 w-full">
-        {pathname === "/book-preparations" ? <DrawerButton /> : null}
+        {pathname === "/bookprep" ? <DrawerButton /> : null}
         <SegmentedControl />
       </div>
     );

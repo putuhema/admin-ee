@@ -11,12 +11,12 @@ const links = [
   {
     img: "book",
     title: "Book",
-    link: "/book-preparations",
+    link: "/bookprep",
   },
   {
     img: "graduate",
     title: "Form",
-    link: "/enrollment-form",
+    link: "/fee",
   },
   {
     img: "graduate",
