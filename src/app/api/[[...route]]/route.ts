@@ -11,6 +11,7 @@ import meetings from "@/features/meeting/route";
 import teachers from "@/features/teachers/route";
 import payments from "@/features/payments/route";
 import bookPreparations from "@/features/book-preparations/route";
+import invoices from "@/features/invoices/route";
 
 export type Variables = {
   Variables: {
@@ -45,7 +46,8 @@ const routes = app
   .route("/meetings", meetings)
   .route("/teachers", teachers)
   .route("/payments", payments)
-  .route("/book-preparations", bookPreparations);
+  .route("/book-preparations", bookPreparations)
+  .route("/invoices", invoices);
 
 export const GET = handle(app);
 export const POST = handle(app);

@@ -7,7 +7,6 @@ import {
   CalendarFold,
   Command,
   FileUser,
-  HandCoins,
   User,
 } from "lucide-react";
 
@@ -42,6 +41,12 @@ const data = {
       title: "Enrollment",
       url: "/dashboard/enrollment",
       icon: FileUser,
+      items: [
+        {
+          title: "Invoinces",
+          url: "/dashboard/enrollment/invoices",
+        },
+      ],
     },
     {
       title: "Meeting",
@@ -82,7 +87,7 @@ export function AppSidebar({ user, ...props }: Props) {
       }));
 
       return data.navMain.map((item) =>
-        item.title === "Programs" ? { ...item, items: programsLinks } : item,
+        item.title === "Programs" ? { ...item, items: programsLinks } : item
       );
     }
     return data.navMain;

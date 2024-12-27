@@ -5,18 +5,18 @@ import AnimatedBackground from "@/components/ui/animated-background";
 const links = [
   {
     img: "calendar",
-    title: "Today's",
+    title: "Jadwal",
     link: "/",
   },
   {
     img: "book",
-    title: "Book",
+    title: "Siapkan Buku",
     link: "/bookprep",
   },
   {
     img: "graduate",
-    title: "Form",
-    link: "/fee",
+    title: "Iuran",
+    link: "/invoices",
   },
   {
     img: "graduate",

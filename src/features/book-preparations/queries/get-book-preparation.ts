@@ -21,5 +21,6 @@ export const useGetBookPrep = (id: number) => {
       const data = await response.json();
       return data;
     },
+    enabled: !!id,
   });
 };

@@ -8,7 +8,6 @@ import { useIsClient } from "@uidotdev/usehooks";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SegmentedControl } from "@/features/home";
 import DrawerButton from "@/features/book-preparations/components/drawer-button";
-import { usePathname } from "next/navigation";
 
 const mainNav = [
   {
@@ -30,7 +29,6 @@ interface MainNavProps {
 }
 
 export default function MainNav({ user }: MainNavProps) {
-  const pathname = usePathname();
   const isClient = useIsClient();
   const isMobile = useIsMobile();
 
@@ -41,7 +39,7 @@ export default function MainNav({ user }: MainNavProps) {
   if (isMobile) {
     return (
       <div className="fixed z-50 bottom-0 left-0 w-full">
-        {pathname === "/bookprep" ? <DrawerButton /> : null}
+        <DrawerButton />
         <SegmentedControl />
       </div>
     );
