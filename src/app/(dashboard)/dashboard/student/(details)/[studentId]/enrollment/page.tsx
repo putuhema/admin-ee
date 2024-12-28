@@ -9,7 +9,7 @@ export default function StudentEnrollmentPage() {
   const { studentId } = useParams();
 
   const { data: student, isLoading } = useGetStudentEnrollment(
-    Number(studentId?.toString()),
+    Number(studentId?.toString())
   );
 
   if (isLoading) {
@@ -34,7 +34,7 @@ export default function StudentEnrollmentPage() {
               {se.packageCount! * se.meetingQty} meetings left
             </p>
           </div>
-          <StudentCalendar />
+          {/* <StudentCalendar /> */}
         </div>
       ))}
     </section>

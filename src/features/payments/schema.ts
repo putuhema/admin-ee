@@ -12,4 +12,3 @@ export const paymentSchema = z.object({
 });
 
 export type PaymentForm = z.infer<typeof paymentSchema>;
-

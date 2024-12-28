@@ -3,7 +3,7 @@ import { Enrollment, Order, Payment } from "@/db/schema";
 import { Hono } from "hono";
 import { eq, and } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
-import { paymentSchema } from "@/lib/zod-schema";
+import { paymentSchema } from "./schema";
 import { z } from "zod";
 
 const app = new Hono()
@@ -27,7 +27,7 @@ const app = new Hono()
       z.object({
         orderId: z.number(),
         paymentDate: z.coerce.date(),
-      }),
+      })
     ),
     async (c) => {
       try {
@@ -65,6 +65,6 @@ const app = new Hono()
       } catch (error) {
         return c.json({ error: error }, 500);
       }
-    },
+    }
   );
 export default app;
