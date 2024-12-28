@@ -12,9 +12,9 @@ import { useOpenInvoiceDrawer } from "../hooks/use-open-drawer";
 import InvoicesForm from "./invoices-form/invoices-form";
 
 export default function InvoiceDrawer() {
-  const { isOpen, onClose } = useOpenInvoiceDrawer();
+  const { form, onClose } = useOpenInvoiceDrawer();
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
+    <Drawer open={form} onOpenChange={() => onClose("form")}>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Formulir Iuran Bulanan</DrawerTitle>

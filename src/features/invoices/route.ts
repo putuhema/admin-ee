@@ -11,6 +11,7 @@ import {
 } from "@/db/schema";
 import { and, count, countDistinct, eq, gt, lt } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 
 const app = new Hono()
   .get("/", async (c) => {
@@ -157,6 +158,72 @@ const app = new Hono()
       },
     });
   })
+  .get(
+    "/:studentId",
+    zValidator(
+      "param",
+      z.object({
+        studentId: z.coerce.number(),
+      })
+    ),
+    async (c) => {
+      const { studentId } = c.req.valid("param");
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const invoices = await db
+        .select({
+          id: MonthlyFee.id,
+          student: {
+            name: Student.name,
+            nickname: Student.nickname,
+            id: Student.id,
+          },
+          program: {
+            id: Program.id,
+            name: Program.name,
+          },
+          package: {
+            id: MeetingPackage.id,
+            name: MeetingPackage.name,
+            qty: MeetingPackage.count,
+            price: MeetingPackage.price,
+          },
+          invoiceDate: MonthlyFee.invoiceDate,
+          invoiceNumber: MonthlyFee.invoiceNumber,
+          dueDate: MonthlyFee.dueDate,
+          amount: MonthlyFee.amount,
+          status: MonthlyFee.status,
+          paidDate: MonthlyFee.paidDate,
+          notes: MonthlyFee.notes,
+        })
+        .from(MonthlyFee)
+        .leftJoin(Student, eq(Student.id, MonthlyFee.studentId))
+        .leftJoin(
+          Enrollment,
+          and(
+            eq(Enrollment.studentId, MonthlyFee.studentId),
+            eq(Enrollment.programId, MonthlyFee.programId)
+          )
+        )
+        .leftJoin(Program, eq(Program.id, MonthlyFee.programId))
+        .leftJoin(
+          MeetingPackage,
+          eq(MeetingPackage.id, Enrollment.meetingPackageId)
+        )
+        .where(
+          and(
+            gt(MonthlyFee.invoiceDate, startOfMonth),
+            lt(MonthlyFee.invoiceDate, endOfMonth),
+            eq(Student.id, Number(studentId))
+          )
+        );
+
+      return c.json(invoices);
+    }
+  )
   .post("/", zValidator("json", invoiceSchema), async (c) => {
     try {
       const { studentId, packageId, programId, quantity, date, notes } =

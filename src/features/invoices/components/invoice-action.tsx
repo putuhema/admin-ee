@@ -9,8 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
+import useOpenInvoiceDetailDrawer from "../hooks/use-open-details";
 
-export default function InvoiceAction() {
+interface InvoiceActionProps {
+  id: number;
+}
+
+export default function InvoiceAction({ id }: InvoiceActionProps) {
+  const { onOpen } = useOpenInvoiceDetailDrawer();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -19,7 +25,7 @@ export default function InvoiceAction() {
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Details</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onOpen(id)}>Details</DropdownMenuItem>
         <DropdownMenuItem>Modify</DropdownMenuItem>
         <DropdownMenuItem>Delete</DropdownMenuItem>
       </DropdownMenuContent>

@@ -21,7 +21,7 @@ export default function DrawerButton() {
             if (pathname === "/bookprep") {
               onOpen();
             } else {
-              onOpenInvoice();
+              onOpenInvoice("form");
             }
           }}
           className="rounded-full h-12 w-12"
